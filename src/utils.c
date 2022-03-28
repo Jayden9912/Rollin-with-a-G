@@ -1,6 +1,7 @@
 #include "rolling.c"
 #include "angular_velocity_encoder.c"
 #include "kinematics.c"
+#include "Sensors.c"
 
 typedef struct Car{
     float wheels_length;
@@ -31,7 +32,7 @@ void init(){
     odom.y = 24; // cm
     odom.angle = compass();
     car.wheels_length = 25.5; // cm
-    car.turn_radius = 3.5}; // cm
+    car.turn_radius = 3.5; // cm
 }
 
 float compass(){
@@ -87,7 +88,7 @@ void move(char dir, float left_speed, float right_speed, int time){
 }
 
 void detect_line(){
-    if (SensorValue[right_ir]==0 || SensorValue[left_ir]==0){
+    if (SensorValue[right_line]==0 || SensorValue[left_line]==0){
         return true; 
     }
     return false;
@@ -101,3 +102,8 @@ void detect_line(){
 //     }
 // }
 
+bool detect_car(){
+    front_distance = getIRSensorReading();
+    if (front_distance < 10) return true;
+    else return false;
+}

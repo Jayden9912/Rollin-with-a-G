@@ -36,7 +36,6 @@ task kinematics(){
         odom.resultant_w = (car.turn_radius/car.wheels_length) * (odom.w_right - odom.w_left);
         }
     }
-}
 
 task forward_kinematics(){
     float vel_right;
