@@ -2,9 +2,14 @@
 #include "angular_velocity_encoder.c"
 #include "kinematics.c"
 
+float HOME_HEADING = 90;
+
 float ball_dist_threshold = 17.7;
 float gap_ball_threshold = 5;
 float avoid_dist_threshold;
+
+int LIMIT_PRESSED = 0;
+int LIMIT_NOT_PRESSED = 1;
 
 typedef struct Car{
     float wheels_length;
@@ -104,6 +109,94 @@ void search_ball(){
     return false;
 }
 
+void release_ball(){
+    motor[ball_servo] = 127;
+}
+
+void home(){ // calibrate HOME and compass direction
+    float current_heading = compass();
+    // facing direction
+    // front
+    if (compass() == HOME){
+        if (SensorValue[home_limit_left]==LIMIT_NOT_PRESSED){
+            move('b', 0.75, 0.75, 5);
+        }
+        else{
+            release_ball();
+        }
+    }
+    // front right
+    else if (compass == ){
+        if (SensorValue[home_limit_left]==LIMIT_NOT_PRESSED){
+            move('l', 1, 1, 2);
+            move('b', 0.75, 0.75, 5);          
+        }
+        else{
+            release_ball();
+        }
+    }
+    // front left
+    else if (compass == ){
+        if (SensorValue[home_limit_left]==LIMIT_NOT_PRESSED){
+            move('r', 1, 1, 2);
+            move('b', 0.75, 0.75, 5);            
+        }
+        else{
+            release_ball();
+        }
+    }
+    // left
+    else if (compass == ){
+        if (SensorValue[home_limit_left]==LIMIT_NOT_PRESSED){
+            move('r', 1, 1, 2);
+            move('b', 0.75, 0.75, 5);            
+        }
+        else{
+            release_ball();
+        }
+    }
+    // left back
+    else if (compass == ){
+        if (SensorValue[home_limit_left]==LIMIT_NOT_PRESSED){
+            move('r', 1, 1, 2);
+            move('b', 0.75, 0.75, 5);           
+        }
+        else{
+            release_ball();
+        }
+    }
+    // right
+    else if (compass == ){
+        if (SensorValue[home_limit_left]==LIMIT_NOT_PRESSED){
+            move('l', 1, 1, 2);
+            move('b', 0.75, 0.75, 5);           
+        }
+        else{
+            release_ball();
+        }
+    }
+    // right back
+    else if (compass == ){
+        if (SensorValue[home_limit_left]==LIMIT_NOT_PRESSED){
+            move('l', 1, 1, 2);
+            move('b', 0.75, 0.75, 5);           
+        }
+        else{
+            release_ball();
+        }
+    }
+    // back
+    else if (compass == ){
+        if (SensorValue[home_limit_left]==LIMIT_NOT_PRESSED){
+            move('l', 1, 1, 2);
+            move('b', 0.75, 0.75, 5);           
+        }
+        else{
+            release_ball();
+        }
+    }
+}
+
 void pan_search_collect(){
     float heading;
     move('r', 1, 1, 2);
@@ -111,10 +204,13 @@ void pan_search_collect(){
         move('r', 0.5, 0.5, 2);
         move('1', 0.5, 0.5, 2);
     }
-    while(SensorValue[ball_limit]==){
-        SensorValue[right_ir]<=gap_ball_threshold && SensorValue[left_ir]<=gap_ball_threshold
+    while(SensorValue[right_ir]>gap_ball_threshold && SensorValue[left_ir]>gap_ball_threshold 
+            && SensorValue[ball_limit]==LIMIT_NOT_PRESSED){
         move('f', 1, 1, 2);
-        motor[roller] = 127;
+        motor[ball_roller] = 127;
+        }
+    if (SensorValue[ball_limit]==LIMIT_PRESSED){
+        home();
     }
 }
 

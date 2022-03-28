@@ -2,10 +2,10 @@
 #pragma config(Sensor, in3, left_ir, sensorAnalog)
 #pragma config(Sensor, in4, back_ir, sensorAnalog)
 #pragma config(Sensor, in5, top_ir, sensorAnalog)
-#pragma config(Sensor, in6, inlimit_left, sensorAnalog)
-#pragma config(Sensor, in7, inlimit_right, sensorAnalog)
-#pragma config(Sensor, in8, back_limit_3, sensorAnalog)
-#pragma config(Sensor, dgtl1, back_limit_4,   sensorDigitalIn)
+#pragma config(Sensor, in6, home_limit_left, sensorAnalog)
+#pragma config(Sensor, in7, home_limit_right, sensorAnalog)
+#pragma config(Sensor, in8, avoid_limit_left, sensorAnalog)
+#pragma config(Sensor, dgtl1, avoid_limit_right, sensorDigitalIn)
 #pragma config(Sensor, dgtl2, switch, sensorDigitalIn)
 #pragma config(Sensor, dgtl3, left_wheel_line, sensorDigitalIn)
 #pragma config(Sensor, dgtl4, right_wheel_line, sensorDigitalIn)
@@ -18,8 +18,8 @@
 #pragma config(Sensor, dgtl11, compass_MSB, sensorDigitalIn)
 #pragma config(Motor,  port2, left_motor, tmotorVex393_MC29, openLoop)
 #pragma config(Motor,  port3, right_motor, tmotorVex393_MC29, openLoop)
-#pragma config(Motor,  port4, roller, tmotorServoContinuousRotation, openLoop)
-#pragma config(Motor,  port5, servo, tmotorServoStandard, openLoop)
+#pragma config(Motor,  port4, ball_roller, tmotorServoContinuousRotation, openLoop)
+#pragma config(Motor,  port5, ball_servo, tmotorServoStandard, openLoop)
 
 #include "angular_velocity_encoder.c"
 #include "kinematics.c"
