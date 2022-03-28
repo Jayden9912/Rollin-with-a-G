@@ -111,10 +111,10 @@ void pan_search_collect(){
         move('r', 0.5, 0.5, 2);
         move('1', 0.5, 0.5, 2);
     }
-    while(SensorValue[right_ir]<=gap_ball_threshold && SensorValue[left_ir]<=gap_ball_threshold){
+    while(SensorValue[ball_limit]==){
+        SensorValue[right_ir]<=gap_ball_threshold && SensorValue[left_ir]<=gap_ball_threshold
         move('f', 1, 1, 2);
         motor[roller] = 127;
     }
-
 }
 
