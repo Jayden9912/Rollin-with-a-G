@@ -2,6 +2,10 @@
 #include "angular_velocity_encoder.c"
 #include "kinematics.c"
 
+float ball_dist_threshold = 17.7;
+float gap_ball_threshold = 5;
+float avoid_dist_threshold;
+
 typedef struct Car{
     float wheels_length;
     float turn_radius;
@@ -31,7 +35,7 @@ void init(){
     odom.y = 24; // cm
     odom.angle = compass();
     car.wheels_length = 25.5; // cm
-    car.turn_radius = 3.5}; // cm
+    car.turn_radius = 3.5; // cm
 }
 
 float compass(){
@@ -87,17 +91,30 @@ void move(char dir, float left_speed, float right_speed, int time){
 }
 
 void detect_line(){
-    if (SensorValue[right_ir]==0 || SensorValue[left_ir]==0){
+    if (SensorValue[right_line]==0 || SensorValue[left_line]==0){
         return true; 
     }
     return false;
 }
 
-// void pan(){
-//     move('r', 1, 1, 2);
-//     while(true){
-//         move('r', 1, 1, 2);
-//         move('r', 1, 1, 2);
-//     }
-// }
+void search_ball(){
+    if (SensorValue[right_ir]<=ball_dist_threshold && SensorValue[left_ir]<=ball_dist_threshold){
+        return true;
+    }
+    return false;
+}
+
+void pan_search_collect(){
+    float heading;
+    move('r', 1, 1, 2);
+    while(!search_ball() && !detect_line()){
+        move('r', 0.5, 0.5, 2);
+        move('1', 0.5, 0.5, 2);
+    }
+    while(SensorValue[right_ir]<=gap_ball_threshold && SensorValue[left_ir]<=gap_ball_threshold){
+        move('f', 1, 1, 2);
+        motor[roller] = 127;
+    }
+
+}
 
