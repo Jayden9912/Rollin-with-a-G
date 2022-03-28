@@ -34,7 +34,6 @@ task kinematics(){
         odom.vel_x = odom.resultant_vel * cos(odom.angle); // cm/s
         odom.vel_y = odom.resultant_vel * sin(odom.angle); // cm/s
         odom.resultant_w = (car.turn_radius/car.wheels_length) * (odom.w_right - odom.w_left);
-        }
     }
 }
 

@@ -25,14 +25,16 @@
 #include "kinematics.c"
 #include "utils.c"
 
-int 
+int LIMIT_PRESSED = 0;
+int LIMIT_NOT_PRESSED = 1;
+
 task main(){
     init();
     startTask(left_wheel_encoder);
     startTask(right_wheel_encoder);
     startTask(kinematics);
     startTask(forward_kinematics);
-    while(SensorValue[switch]==0){
-
+    while(SensorValue[switch]==LIMIT_PRESSED){
+        pan_search_collect();
     }
 }
