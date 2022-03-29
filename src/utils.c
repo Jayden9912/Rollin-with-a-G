@@ -3,7 +3,12 @@ float HOME_HEADING = 90;
 float ball_dist_threshold = 17.7;
 float gap_ball_threshold = 5;
 // float avoid_dist_threshold;
-
+int BALL_NOT_FOUND = 0;
+int BALL_FOUND = 1;
+int LINE_NOT_DETECTED = 0;
+int LINE_DETECTED = 1;
+int OBS_NOT_DETECTED = 0;
+int OBS_DETECTED = 1;
 int LIMIT_PRESSED = 0;
 int LIMIT_NOT_PRESSED = 1;
 
@@ -114,121 +119,76 @@ float getIRSensorReading(IRSensor* sensor){
 	return distance;
 }
 
+int detect_car(){ // front and back sensor only
+    float front_distance = getIRSensorReading(FrontSensor);
+    float back_distance = getIRSensorReading(BackSensor);
+    if (front_distance<10 && back_distance<10){
+        return OBS_DETECTED;
+    }
+    return OBS_NOT_DETECTED;
+}
+
 int detect_line(){
     if (SensorValue[right_line]==0 || SensorValue[left_line]==0){
-        return 1; 
+        return LINE_DETECTED; 
     }
-    return 0;
+    return LINE_NOT_DETECTED;
 }
 
 int search_ball(){
     if (SensorValue[right_ir]<=ball_dist_threshold && SensorValue[left_ir]<=ball_dist_threshold){
-        return 1;
+        return BALL_FOUND;
     }
-    return 0;
+    return BALL_NOT_FOUND;
 }
 
 void release_ball(){
     motor[ball_servo] = 127;
 }
 
+void reverse_to_home(){
+    while(SensorValue[home_limit_left]==LIMIT_NOT_PRESSED && SensorValue[home_limit_right]==LIMIT_NOT_PRESSED){
+        move('b', 0.75, 0.75);
+    }
+    move('b', 0, 0);
+    release_ball();
+}
+
 void home(){ // calibrate HOME and compass direction
     float current_heading = compass();
     // facing direction
     // front
-    if (compass() == HOME_HEADING){
-        if (SensorValue[home_limit_left]==LIMIT_NOT_PRESSED){
-            move('b', 0.75, 0.75);
-        }
-        else{
-            release_ball();
+    if (compass() == HOME_HEADING){ // S
+        reverse_to_home();
+    }
+    else if (compass()==45 && compass()==0 && compass()==315 && compass()==270){ // SW, W, NW, N
+        while(compass() != HOME_HEADING){
+            move('l', 0.5, 0.5);
         }
     }
-    // front right
-    else if (compass() == 45){
-        if (SensorValue[home_limit_left]==LIMIT_NOT_PRESSED){
-            move('l', 1, 1);
-            move('b', 0.75, 0.75);          
-        }
-        else{
-            release_ball();
-        }
-    }
-    // front left
-    else if (compass() == 135){
-        if (SensorValue[home_limit_left]==LIMIT_NOT_PRESSED){
-            move('r', 1, 1);
-            move('b', 0.75, 0.75);            
-        }
-        else{
-            release_ball();
-        }
-    }
-    // left
-    else if (compass() == 180){
-        if (SensorValue[home_limit_left]==LIMIT_NOT_PRESSED){
-            move('r', 1, 1);
-            move('b', 0.75, 0.75);            
-        }
-        else{
-            release_ball();
-        }
-    }
-    // left back
-    else if (compass() == 225){
-        if (SensorValue[home_limit_left]==LIMIT_NOT_PRESSED){
-            move('r', 1, 1);
-            move('b', 0.75, 0.75);           
-        }
-        else{
-            release_ball();
-        }
-    }
-    // right
-    else if (compass() == 0){
-        if (SensorValue[home_limit_left]==LIMIT_NOT_PRESSED){
-            move('l', 1, 1);
-            move('b', 0.75, 0.75);           
-        }
-        else{
-            release_ball();
-        }
-    }
-    // right back
-    else if (compass() == 315){
-        if (SensorValue[home_limit_left]==LIMIT_NOT_PRESSED){
-            move('l', 1, 1);
-            move('b', 0.75, 0.75);           
-        }
-        else{
-            release_ball();
-        }
-    }
-    // back
-    else if (compass() == 270){
-        if (SensorValue[home_limit_left]==LIMIT_NOT_PRESSED){
-            move('l', 1, 1);
-            move('b', 0.75, 0.75);           
-        }
-        else{
-            release_ball();
+    else if (compass()==135 && compass()==180 && compass()==225){ // SE, E, NE
+        while(compass() != HOME_HEADING){
+            move('r', 0.5, 0.5);
         }
     }
 }
 
-void pan_search_collect(){
+void search_collect_home(){
+    move('f', 1, 1);
+    wait1Msec(2000);
     move('r', 1, 1);
-    while(search_ball()==0 && detect_line()==0){
+    wait1Msec(2000);
+    while(search_ball()==BALL_NOT_FOUND && detect_line()==LINE_NOT_DETECTED){
+        move('l', 0.5, 0.5);
+        wait1Msec(3000);
         move('r', 0.5, 0.5);
-        move('1', 0.5, 0.5);
+        wait1Msec(3000);
     }
     while(SensorValue[right_ir]>gap_ball_threshold && SensorValue[left_ir]>gap_ball_threshold 
             && SensorValue[ball_limit]==LIMIT_NOT_PRESSED){
         move('f', 1, 1);
         motor[ball_roller] = 127;
         }
-    if (SensorValue[ball_limit]==LIMIT_PRESSED){
-        home();
-    }
+    home();
 }
 
