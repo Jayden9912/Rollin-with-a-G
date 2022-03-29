@@ -1,28 +1,33 @@
-#include "rolling.c"
-
+int left_value;
 int left_duration;
+int see_left;
+int right_value;
 int right_duration;
-int threshold; //set threshold
+int see_right;
+int right_threshold = 500;
+
 task left_wheel_encoder(){
     while(true){
-        ClearTimer(T1);
-        while (sensorValue[left_wheel_line]==1){
-            continue;
+        clearTimer(T1);
+        while (SensorValue[left_wheel_line]==0){
+        		left_value = 0;
+        		left_duration = time1[T1];
         }
-        if (time1[T1] >= threshold){
-            left_duration = time1[T1]*1000;
-        } 
+        see_left = left_duration;
+        left_value = 1;
     }
 }
 
 task right_wheel_encoder(){
     while(true){
-        ClearTimer(T1);
-        while (sensorValue[right_wheel_line]==1){
-            continue;
+        clearTimer(T2);
+        while (SensorValue[right_wheel_line]==0){
+        		right_value = 0;
+        		right_duration = time1[T2];
         }
-        if (time1[T1] >= threshold){
-            right_duration = time1[T1]*1000;
-        } 
+        if (right_duration > right_threshold){
+		      see_right = right_duration;
+		      right_value = 1;
+      }
     }
 }
