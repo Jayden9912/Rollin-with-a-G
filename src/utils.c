@@ -1,3 +1,6 @@
+int check;
+int check_search_ball;
+int check_detect_line;
 float HOME_HEADING = 90;
 
 float ball_dist_threshold = 17.7;
@@ -136,7 +139,7 @@ int detect_line(){
 }
 
 int search_ball(){
-    if (SensorValue[right_ir]<=ball_dist_threshold && SensorValue[left_ir]<=ball_dist_threshold){
+    if (getIRSensorReading(LeftSensor)<=ball_dist_threshold && getIRSensorReading(RightSensor)<=ball_dist_threshold){
         return BALL_FOUND;
     }
     return BALL_NOT_FOUND;
@@ -173,17 +176,32 @@ void home(){ // calibrate HOME and compass direction
     }
 }
 
+void find_ball_stop(){
+    check_search_ball = search_ball();
+    check_detect_line = detect_line();
+    while(search_ball()==BALL_NOT_FOUND && detect_line()==LINE_NOT_DETECTED){
+        check = 100;
+        move('l', 0.5, 0.5);
+        // wait1Msec(3000);
+        // move('r', 0.5, 0.5);
+        // wait1Msec(3000);
+    }
+    check = 0;
+    move('f', 0, 0);
+}
+
 void search_collect_home(){
     move('f', 1, 1);
-    wait1Msec(2000);
-    move('r', 1, 1);
+    wait1Msec(3000);
+    move('r', 0.5, 0.5);
     wait1Msec(2000);
     while(search_ball()==BALL_NOT_FOUND && detect_line()==LINE_NOT_DETECTED){
         move('l', 0.5, 0.5);
-        wait1Msec(3000);
-        move('r', 0.5, 0.5);
-        wait1Msec(3000);
+        // wait1Msec(3000);
+        // move('r', 0.5, 0.5);
+        // wait1Msec(3000);
     }
+    move('f', 0, 0);
     while(SensorValue[right_ir]>gap_ball_threshold && SensorValue[left_ir]>gap_ball_threshold 
             && SensorValue[ball_limit]==LIMIT_NOT_PRESSED){
         move('f', 1, 1);

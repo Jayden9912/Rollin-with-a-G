@@ -25,8 +25,8 @@
 #include "kinematics.c"
 #include "utils.c"
 
-// int LIMIT_PRESSED = 0;
-// int LIMIT_NOT_PRESSED = 1;
+int POWER_ON = 0;
+int POWER_OFF = 1;
 
 task main(){
     init();
@@ -34,8 +34,12 @@ task main(){
     startTask(right_wheel_encoder);
     // startTask(kinematics);
     // startTask(forward_kinematics);
-    while(SensorValue[switch_limit]==LIMIT_PRESSED){
-        move('f',0.2,0.2);
-        // pan_search_collect();
-    }
+    while(true){
+	    while(SensorValue[switch_limit]==POWER_ON){
+	        // move('f',0.2,0.2);
+            find_ball_stop();
+	        //search_collect_home();
+	    }
+	    move('f',0,0);
+	}
 }
