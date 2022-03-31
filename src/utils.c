@@ -196,10 +196,7 @@ void search_collect_home(){
     move('r', 0.5, 0.5);
     wait1Msec(2000);
     while(search_ball()==BALL_NOT_FOUND && detect_line()==LINE_NOT_DETECTED){
-        move('l', 0.5, 0.5);
-        // wait1Msec(3000);
-        // move('r', 0.5, 0.5);
-        // wait1Msec(3000);
+        move('l', 0.4, 0.4);
     }
     move('f', 0, 0);
     while(SensorValue[right_ir]>gap_ball_threshold && SensorValue[left_ir]>gap_ball_threshold 
