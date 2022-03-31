@@ -3,15 +3,22 @@ int check_search_ball;
 int check_detect_line;
 float HOME_HEADING = 90;
 
+// TODO: Define/const
+// #define LINE_NOT_DETECTED = 0;
+// #define LEFT_LINE_DETECTED = 1;
+// #define RIGHT_LINE_DETECTED = 2;
+
 float ball_dist_threshold = 17.7;
 float gap_ball_threshold = 5;
 // float avoid_dist_threshold;
-int BALL_NOT_FOUND = 0;
-int BALL_FOUND = 1;
-int LINE_NOT_DETECTED = 0;
-int LINE_DETECTED = 1;
-int OBS_NOT_DETECTED = 0;
-int OBS_DETECTED = 1;
+const int BALL_NOT_FOUND = 0;
+const int BALL_FOUND = 1;
+const int LINE_NOT_DETECTED = 0;
+// int LINE_DETECTED = 1;
+const int LEFT_LINE_DETECTED = 1;
+const int RIGHT_LINE_DETECTED = 2;
+const int OBS_NOT_DETECTED = 0;
+const int OBS_DETECTED = 1;
 int LIMIT_PRESSED = 0;
 int LIMIT_NOT_PRESSED = 1;
 
@@ -132,10 +139,22 @@ int detect_car(){ // front and back sensor only
 }
 
 int detect_line(){
-    if (SensorValue[right_line]==0 || SensorValue[left_line]==0){
-        return LINE_DETECTED; 
+    // Changes added by Soon Hing
+    if (SensorValue[right_line]!=0) {
+        return RIGHT_LINE_DETECTED;
     }
-    return LINE_NOT_DETECTED;
+
+    else if (SensorValue[left_line]!=0) {
+        return LEFT_LINE_DETECTED
+    }
+
+    else {
+        return LINE_NOT_DETECTED;
+    }
+    // if (SensorValue[right_line]==0 || SensorValue[left_line]==0){
+    //     return LINE_DETECTED; 
+    // }
+    // return LINE_NOT_DETECTED;
 }
 
 int search_ball(){
@@ -209,4 +228,3 @@ void search_collect_home(){
         }
     home();
 }
-

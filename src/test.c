@@ -29,7 +29,7 @@ int getIRSensorReading(IRSensor* sensor){
 task main(){
     IRSensor LeftSensor, RightSensor;
     initializeSensor(&LeftSensor, left_ir, 27.534, -1.207);
-    initializeSensor(&RightSensor, right_ir, 27.534, -1.207);
+    initializeSensor(&RightSensor, right_ir, 47.193, -0.699);
     while(true){
         left_ir_value = getIRSensorReading(LeftSensor);
         right_ir_value = getIRSensorReading(RightSensor);
