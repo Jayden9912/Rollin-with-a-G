@@ -51,11 +51,11 @@ typedef struct{
 } IRSensor;
 IRSensor FrontSensor, BackSensor, LeftSensor, RightSensor;
 
-// typedef struct{
-//     int forward_interval;
-//     int backward_interval;
-// } GetTime;
-// GetTime getTime;
+typedef struct{
+    int forward_interval;
+    int rotate_interval;
+} GetTime;
+GetTime getTime;
 
 void initializeSensor(IRSensor* sensor, int pin, float factor, float exponent){
 	sensor->pin = pin;
@@ -91,22 +91,28 @@ float compass(){
 void move(char dir, float left_speed, float right_speed){
     switch(dir){
         case 'f':
+            // clearTimer(T3); // insert after function call
             motor[left_motor] = left_speed*127;
             motor[right_motor] = right_speed*127;
-            // getTime.forward_interval = time;
+            // getTime.forward_interval = time1[T3];
             break;
         case 'b':
+            // clearTimer(T3);
             motor[left_motor] = -left_speed*127;
             motor[right_motor] = -right_speed*127;
-            // getTime.backward_interval = time;
+            // getTime.forward_interval = time1[T3];
             break;
         case 'r':
+            // clearTimer(T3);
             motor[left_motor] = left_speed*127;
             motor[right_motor] = -right_speed*127;
+            // getTime.rotate_interval = time1[T3];
             break;
         case 'l':
+            // clearTimer(T3);
             motor[left_motor] = -left_speed*127;
             motor[right_motor] = right_speed*127;
+            // getTime.rotate_interval = time1[T3];
             break;
     }
 }
@@ -145,7 +151,7 @@ int detect_line(){
     }
 
     else if (SensorValue[left_line]!=0) {
-        return LEFT_LINE_DETECTED
+        return LEFT_LINE_DETECTED;
     }
 
     else {
