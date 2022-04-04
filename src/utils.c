@@ -25,6 +25,7 @@ int LIMIT_NOT_PRESSED = 1;
 typedef struct{
     float wheels_length;
     float turn_radius;
+    float wheel_radius;
 } Car;
 Car car;
 
@@ -35,11 +36,14 @@ typedef struct{
     float y;
     float vel_x;
     float vel_y;
+    float vel_left;
+    float vel_right;
     float resultant_vel;
     float w_left;
     float w_right;
     float resultant_w;
-    float angle;
+    float compass_angle;
+    float orientation;
 } Odom;
 Odom odom;
 
@@ -120,9 +124,12 @@ void move(char dir, float left_speed, float right_speed){
 void init(){
     odom.x = 60; // cm
     odom.y = 24; // cm
-    odom.angle = compass();
+    odom.orientation = 90;
+    odom.resultant_vel = 0; // cm/s
+    odom.compass_angle = compass();
     car.wheels_length = 25.5; // cm
-    car.turn_radius = 3.5; // cm
+    car.turn_radius = 0; // cm
+    car.wheel_radius = 3.5;
     initializeSensor(&FrontSensor, top_ir, 27.534, -1.207);
     initializeSensor(&BackSensor, back_ir, 27.534, -1.207);
     initializeSensor(&LeftSensor, left_ir, 27.534, -1.207);
@@ -186,17 +193,82 @@ void home(){ // calibrate HOME and compass direction
     float current_heading = compass();
     // facing direction
     // front
-    if (compass() == HOME_HEADING){ // S
+    if (current_heading == HOME_HEADING){ // S
         reverse_to_home();
     }
-    else if (compass()==45 && compass()==0 && compass()==315 && compass()==270){ // SW, W, NW, N
+    else if (current_heading==45 && current_heading==0 && current_heading==315 && current_heading==270){ // SW, W, NW, N
         while(compass() != HOME_HEADING){
             move('l', 0.5, 0.5);
+            reverse_to_home();
         }
     }
-    else if (compass()==135 && compass()==180 && compass()==225){ // SE, E, NE
+    else if (current_heading==135 && current_heading==180 && current_heading==225){ // SE, E, NE
         while(compass() != HOME_HEADING){
             move('r', 0.5, 0.5);
+            reverse_to_home();
+        }
+    }
+}
+
+void avoid_line(){
+    float current_heading = compass();
+    // left boundary
+    if (0<=odom.x<=40 && odom.y<=200){
+        if (current_heading==90 && current_heading==135 && current_heading==180){ // S, SE, E
+            while(compass()!=45){ // SW
+                move('r', 0.5, 0.5);
+            }
+            move('r', 0, 0);
+        }
+        else if(current_heading==225){ // NE
+            while(compass()!=45){ // SW
+                move('l', 0.5, 0.5);
+            }
+            move('l', 0, 0);
+        }
+    }
+    // right boundary
+    else if(80<=odom.x<=120 && odom.y<=200){
+        if (current_heading==90 && current_heading==45 && current_heading==0){ // S, SW, W
+            while(compass()!=135){ // SE
+                move('l', 0.5, 0.5);
+            }
+            move('l', 0, 0);
+        }
+        else if(current_heading==315){ // NW
+            while(compass()!=135){ // SE
+                move('r', 0.5, 0.5);
+            }
+            move('r', 0, 0);
+        }
+    }
+    // left upper corner
+    else if(0<=odom.x<=40 && odom.y>200){
+        move('b', 0.5, 0.5);
+        while(compass()!=315){ // NW
+            move('r', 0.5, 0.5);
+        }
+    }
+    // right upper corner
+    else if(80<=odom.x<=120 && odom.y>200){
+        move('b', 0.5, 0.5);
+        while(compass()!=225){ //NE
+            move('r', 0.5, 0.5);
+        }
+    }
+    // upper boundary
+    else if(40<=odom.x<=80 && odom.y>200){
+        if (current_heading==90 && current_heading==135 && current_heading==180){ // S, SE, E
+            while(compass()!=270){ // N
+                move('l', 0.5, 0.5);
+            }
+            move('l', 0, 0);
+        }
+        else if(current_heading==0 && current_heading==45){ // W, SW
+            while(compass()!=270){ // N
+                move('r', 0.5, 0.5);
+            }
+            move('r', 0, 0);
         }
     }
 }

@@ -11,7 +11,7 @@ v_Y = w_left + w_right * R/2 * sin(heading in rad)
 w = (w_right - w_left) * R/L
 where R is the radius of wheel and L is the distance between each wheel */
 task kinematics(){
-    while(true){
+        while(true){
         if (motor[left_motor] > 0){
             odom.w_left = PI/(left_duration);
         }
@@ -29,11 +29,14 @@ task kinematics(){
         }
         else{
             odom.w_right = 0;
-        } 
-        odom.resultant_vel = (car.turn_radius/2) * (odom.w_left + odom.w_right); // cm/s
-        odom.vel_x = odom.resultant_vel * cos(odom.angle); // cm/s
-        odom.vel_y = odom.resultant_vel * sin(odom.angle); // cm/s
-        odom.resultant_w = (car.turn_radius/car.wheels_length) * (odom.w_right - odom.w_left);
+        }
+        // odom.resultant_vel = (car.turn_radius/2) * (odom.w_left + odom.w_right); // cm/s
+        // odom.vel_x = odom.resultant_vel * cos(odom.angle); // cm/s
+        // odom.vel_y = odom.resultant_vel * sin(odom.angle); // cm/s
+        // odom.resultant_w = (car.turn_radius/car.wheels_length) * (odom.w_right - odom.w_left);
+        odom.vel_left = car.wheel_radius * odom.w_left; // cm/s
+        odom.vel_right = car.wheel_radius * odom.w_right; // cm/s
+        odom.resultant_w = odom.vel_left/(car.wheels_length/2);
     }
 }
 
@@ -46,35 +49,41 @@ task forward_kinematics(){
     float icc_y_origin;
     float rotate_icc_x;
     float rotate_icc_y;
+    float left_distance;
+    float changing_orientation;
     while(true){
         if (motor[left_motor] == motor[right_motor]){
             // move straight
             // vel_right = vel_left
-            vel_right = odom.resultant_w * (car.turn_radius + 0.5*car.wheels_length); // cm/s
-            odom.x = odom.x + vel_right*cos(odom.angle)*getTime.forward_interval;
-            odom.y = odom.y + vel_right*sin(odom.angle)*getTime.forward_interval;
+            odom.x = odom.x + odom.vel_right*cos(odom.orientation)*getTime.forward_interval;
+            odom.y = odom.y + odom.vel_right*sin(odom.orientation)*getTime.forward_interval;
         }
         else if ((motor[left_motor] + motor[right_motor] == 0)){
             // rotate in place
-            odom.angle = compass() + (2*abs(vel_right)*getTime.rotate_interval)/car.wheels_length;
+            if (left_count != -1){
+                left_distance = left_count * PI;
+                changing_orientation = left_distance/(car.wheels_length/2);
+                odom.orientation += changing_orientation;
+            }
+                // odom.orientation += (2*abs(vel_right)*getTime.rotate_interval)/car.wheels_length;
         }
-        else if (motor[left_motor]== 0 && motor[right_motor]==0){
-            // stationary
-        }
-        else{
-            // spin at ICC with spin_angle
-            prev_angle = odom.angle;
-            spin_angle = compass() - prev_angle;
-            interval = spin_angle/odom.resultant_w;
-            icc_x_origin = car.turn_radius * sin(odom.angle);
-            icc_y_origin = car.turn_radius * cos(odom.angle);
-            rotate_icc_x = icc_x_origin*cos(spin_angle) + icc_y_origin*sin(spin_angle);
-            rotate_icc_y = icc_x_origin*sin(spin_angle) - icc_y_origin*cos(spin_angle);
-            odom.icc_x = odom.x - icc_x_origin;
-            odom.icc_y = odom.y + icc_y_origin;
-            odom.x = rotate_icc_x + odom.icc_x;
-            odom.y = rotate_icc_y + odom.icc_y;
-            odom.angle = compass() + odom.resultant_w*getTime.rotate_interval;
-        }
+        // else if (motor[left_motor]== 0 && motor[right_motor]==0){
+        //     // stationary
+        // }
+        // else{
+        //     // spin at ICC with spin_angle
+        //     prev_angle = odom.angle;
+        //     spin_angle = compass() - prev_angle;
+        //     interval = spin_angle/odom.resultant_w;
+        //     icc_x_origin = car.turn_radius * sin(odom.angle);
+        //     icc_y_origin = car.turn_radius * cos(odom.angle);
+        //     rotate_icc_x = icc_x_origin*cos(spin_angle) + icc_y_origin*sin(spin_angle);
+        //     rotate_icc_y = icc_x_origin*sin(spin_angle) - icc_y_origin*cos(spin_angle);
+        //     odom.icc_x = odom.x - icc_x_origin;
+        //     odom.icc_y = odom.y + icc_y_origin;
+        //     odom.x = rotate_icc_x + odom.icc_x;
+        //     odom.y = rotate_icc_y + odom.icc_y;
+        //     odom.angle = compass() + odom.resultant_w*getTime.rotate_interval;
+        // }
     }
 }

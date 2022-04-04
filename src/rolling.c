@@ -32,8 +32,8 @@ task main(){
     init();
     startTask(left_wheel_encoder);
     startTask(right_wheel_encoder);
-    // startTask(kinematics);
-    // startTask(forward_kinematics);
+    startTask(kinematics);
+    startTask(forward_kinematics);
     while(true){
 	    while(SensorValue[switch_limit]==POWER_ON){
 	        move('f',0.3,0.3);
