@@ -77,6 +77,17 @@ int moving() {
 }
 
 int collect_ball() {
+    int ball_collected = 0;
+    motor[ball_roller] = 127;
+    move('f', 1, 1);
+    while(!ball_collected) {
+        if (SensorValue[ball_limit]!=LIMIT_NOT_PRESSED) {   // limit switch on platform triggered
+            motor[ball_servo] = -60;
+            ball_collected = 1;
+            move('f', 0, 0);
+            motor[ball_roller] = 0;
+        }
+    }
     return 0;
 }
 
