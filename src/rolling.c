@@ -36,8 +36,8 @@ task main(){
     // startTask(forward_kinematics);
     while(true){
 	    while(SensorValue[switch_limit]==POWER_ON){
-	        // move('f',0.2,0.2);
-            find_ball_stop();
+	        move('f',0.3,0.3);
+            // find_ball_stop();
 	        //search_collect_home();
 	    }
 	    move('f',0,0);
