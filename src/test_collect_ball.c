@@ -18,7 +18,7 @@ int top_ir_value;
 
 const int BALL_NOT_FOUND = 0;
 const int BALL_FOUND = 1;
-const int ball_dist_threshold = 80;
+const int ball_dist_threshold = 56;
 const int obstacle_threshold = 30;
 int found = 0;
 int collected = 0;
@@ -93,7 +93,7 @@ int search_ball(IRSensor* LeftSensor, IRSensor* RightSensor){
 
 int spin_search(IRSensor* LeftSensor, IRSensor* RightSensor, IRSensor* TopSensor) {
     while(true){  // TODO: Add spin termination condition (1: turn one around || 2: found ball (done))
-        move('l', 0.15, 0.15);  // On the spot turn
+        move('l', 0.3, 0.3);  // On the spot turn
         left_ir_value = getIRSensorReading(LeftSensor);
         right_ir_value = getIRSensorReading(RightSensor);
         top_ir_value = getIRSensorReading(TopSensor);
@@ -108,26 +108,33 @@ int spin_search(IRSensor* LeftSensor, IRSensor* RightSensor, IRSensor* TopSensor
 
 int collect_ball(IRSensor* LeftSensor, IRSensor* RightSensor, IRSensor* TopSensor) {
     while(true) {
-        motor[ball_roller] = 127;
-        move('f', 1, 1);
-        left_ir_value = getIRSensorReading(LeftSensor);
-        right_ir_value = getIRSensorReading(RightSensor);
-        top_ir_value = getIRSensorReading(TopSensor);
-        testing = SensorValue[ball_limit];
-        if (SensorValue[ball_limit]!=LIMIT_NOT_PRESSED) {   // limit switch on platform triggered (ball collected)
-            motor[ball_servo] = -60;
+        if (SensorValue[ball_limit]!=LIMIT_NOT_PRESSED || collected) {   // limit switch on platform triggered (ball collected)
+            collected = 1;
+            motor[ball_servo] = -30;
             move('f', 0, 0);
             motor[ball_roller] = 0;
-            return 1;
+            if(time1[T4] > 300) {
+                motor[ball_servo] = 0;
+                return 1;
+            }
         }
 
+        else {
+            motor[ball_roller] = 127;
+            move('f', 1, 1);
+            left_ir_value = getIRSensorReading(LeftSensor);
+            right_ir_value = getIRSensorReading(RightSensor);
+            top_ir_value = getIRSensorReading(TopSensor);
+            testing = SensorValue[ball_limit];
+            clearTimer(T4);
+        }
+        
         // if (!detect_line() || top_ir_value <= obstacle_threshold ) {
         //     move('f', 0, 0);
         //     // proceed to [Avoid]
         //     return 0;
         // }
     }
-    return 0;
 }
 
 task main(){
@@ -136,62 +143,32 @@ task main(){
     initializeSensor(&RightSensor, right_ir, 24.25202, -0.9794);
     initializeSensor(&TopSensor, top_ir, 25.24429, -0.9968);
     while(true) {
-        collect_ball(&LeftSensor, &RightSensor, &TopSensor);
-        break;
-        // if(!collected) {
-        //     found = spin_search(&LeftSensor, &RightSensor, &TopSensor);
-        // }
+        if(!found && !collected) {
+            found = spin_search(&LeftSensor, &RightSensor, &TopSensor);
+        }
 
         // if(!found && !collected) {
-        //     // proceed to [Moving]
-        //     // Do Nothing for now
+            // proceed to [Moving]
+            // Do Nothing for now
         // }
 
-        // else if (found && !collected) {
-        //     collected = collect_ball();
-        // }
+        else if (found && !collected) {
+            collected = collect_ball(&LeftSensor, &RightSensor, &TopSensor);
+            /* Just to test whether tennis ball drop out
+            move('r', 0.2, 0.2);
+            wait1Msec(1000);
+            move('f', 1, 1);
+            wait1Msec(1500);
+            move('l', 0.2, 0.2);
+            wait1Msec(1000);
+            move('b', 1, 1);
+            wait1Msec(1000); */
+        }
 
-        // else {
-        //     // proceed to [Return]
-        //     // Stop for now
-        //     move('f', 0, 0);
-        // }
+        else {
+            // proceed to [Return]
+            // Stop for now
+            move('f', 0, 0);
+        }
     }
-
-    // while(!found){
-    //     left_ir_value = getIRSensorReading(LeftSensor);
-    //     right_ir_value = getIRSensorReading(RightSensor);
-    //     top_ir_value = getIRSensorReading(TopSensor);
-    //     // found = spin_search(&LeftSensor, &RightSensor);
-    // }
-    // while(found && top_ir_value>30){
-    //     motor[ball_roller] = 127;
-    //     move('f', 1, 1);
-    //     left_ir_value = getIRSensorReading(LeftSensor);
-    //     right_ir_value = getIRSensorReading(RightSensor);
-    //     top_ir_value = getIRSensorReading(TopSensor);
-    //     if (SensorValue[ball_limit]!=LIMIT_NOT_PRESSED) {   // limit switch on platform triggered
-    //         motor[ball_servo] = -60;
-    //         move('f', 0, 0);
-    //         motor[ball_roller] = 0;
-    //     }
-    // }
-
-    // move('f', 0, 0);
-    // motor[ball_roller] = 0;
-    // while(true) {
-    //     move('f', 2, 2);    // Minimum 0.5 0.5 to collect ball up to platform
-    //     motor[ball_roller] = 127;
-    //     value = SensorValue[ball_limit];
-    //     if (SensorValue[ball_limit]!=LIMIT_NOT_PRESSED) {
-    //         motor[ball_servo] = -60;
-    //     }
-
-    //     else {
-    //         motor[ball_servo] = 0;
-    //     }
-    // }
-    // move('f', 0, 0);
-    // motor[ball_roller] = 0;
-    // motor[ball_servo] = 127;
 }

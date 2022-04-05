@@ -1,16 +1,16 @@
 #pragma config(Sensor, in2, right_ir, sensorAnalog)
 #pragma config(Sensor, in3, left_ir, sensorAnalog)
 #pragma config(Sensor, in5, top_ir, sensorAnalog)
-// #pragma config(Sensor, dgtl6, left_line, sensorDigitalIn)
-// #pragma config(Sensor, dgtl7, right_line, sensorDigitalIn)
+#pragma config(Sensor, dgtl6, left_line, sensorDigitalIn)
+#pragma config(Sensor, dgtl7, right_line, sensorDigitalIn)
 
-// int leftline;
-// int rightline;
+int leftline;
+int rightline;
 int left_ir_value;
 int right_ir_value;
 int top_ir_value;
 int found;
-const int ball_dist_threshold = 50;
+const int ball_dist_threshold = 56;
 
 typedef struct{
 	int pin;
@@ -47,8 +47,8 @@ task main(){
         else {
             found = 0;
         }
-        // leftline = SensorValue[left_line];
-        // rightline = SensorValue[right_line];
+        leftline = SensorValue[left_line];
+        rightline = SensorValue[right_line];
         // left_ir_value = SensorValue[left_ir];
         // right_ir_value = SensorValue[right_ir];
         // top_ir_value = SensorValue[top_ir];
