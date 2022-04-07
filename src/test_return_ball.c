@@ -98,22 +98,8 @@ void return_prep() {
             move('l', 0.2, 0.2);
             wait1Msec(120);     // * tested on actual surface
             move('f', 0, 0);
-            value = 999;
             return;
         }
-
-        // else {
-        //     if(compass() != 90) {
-        //         move('r', 0.2, 0.2);
-        //     }
-
-        //     else {
-        //         move('l', 0.2, 0.2);
-        //         wait1Msec(300);
-        //         move('f', 0, 0);
-        //         return 0;
-        //     }
-        // }
     }
 }
 
