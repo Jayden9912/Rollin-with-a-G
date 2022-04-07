@@ -39,7 +39,7 @@ task main(){
     prev_time = time1[T3];
     while(true) {
         while(SensorValue[switch_limit]==POWER_ON){
-            move('f',0.9,0.925);
+            move('f',0.67,0.84);
 
             // avoid_line();
             // find_ball_stop();

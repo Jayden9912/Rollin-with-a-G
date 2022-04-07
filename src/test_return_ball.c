@@ -111,6 +111,10 @@ void return_ball(IRSensor* BackSensor) {
             move('f', 0, 0);
         }
 
+        else if(compass() != 135 && compass() != 90) {
+            return_prep();
+        }
+
         else if(SensorValue[avoid_limit_left] == LIMIT_PRESSED) {
             move('l', 0.2, 0.2);
         }
@@ -122,9 +126,9 @@ void return_ball(IRSensor* BackSensor) {
         else if(SensorValue[home_limit_left] == LIMIT_PRESSED && SensorValue[home_limit_right] == LIMIT_PRESSED) {
             move('f', 0, 0);
             motor[ball_servo] = -60;
-            wait1Msec(150);     // ? need test
+            wait1Msec(150);
             motor[ball_servo] = 20;
-            wait1Msec(600);     // ? need test
+            wait1Msec(600);
             return;
         }
 

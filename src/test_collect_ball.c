@@ -180,11 +180,11 @@ void moving(IRSensor* LeftSensor, IRSensor* RightSensor, IRSensor* FrontSensor) 
             return;
         }
 
-        else if(detect_line() != LINE_NOT_DETECTED) {
-            // proceed to [Avoid Line]
-            avoid_line();
-            // return;
-        }
+        // else if(detect_line() != LINE_NOT_DETECTED) {
+        //     // proceed to [Avoid Line]
+        //     avoid_line();
+        //     // return;
+        // }
 
         else if(getIRSensorReading(FrontSensor) < obstacle_threshold) {
             // proceed to [Avoid]
@@ -286,22 +286,27 @@ task main(){
     initializeSensor(&LeftSensor, left_ir, 27.534, -1.207);
     initializeSensor(&RightSensor, right_ir, 24.25202, -0.9794);
     initializeSensor(&FrontSensor, top_ir, 25.24429, -0.9968);
+
     while(true) {
-        if(!found) {
-            spin_search(&LeftSensor, &RightSensor, &FrontSensor);
-            if (!found) {
-                moving(&LeftSensor, &RightSensor, &FrontSensor);
-            }
-        }
-
-        else if (!collected) {
-            collect_ball(&LeftSensor, &RightSensor, &FrontSensor);
-        }
-
-        else {
-            // proceed to [Return Prep]
-            // Stop for now
-            move('f', 0, 0);
-        }
+        moving(&LeftSensor, &RightSensor, &FrontSensor);
     }
+
+    // while(true) {
+    //     if(!found) {
+    //         spin_search(&LeftSensor, &RightSensor, &FrontSensor);
+    //         if (!found) {
+    //             moving(&LeftSensor, &RightSensor, &FrontSensor);
+    //         }
+    //     }
+
+    //     else if (!collected) {
+    //         collect_ball(&LeftSensor, &RightSensor, &FrontSensor);
+    //     }
+
+    //     else {
+    //         // proceed to [Return Prep]
+    //         // Stop for now
+    //         move('f', 0, 0);
+    //     }
+    // }
 }

@@ -14,7 +14,6 @@ float HOME_HEADING = 90;
 // #define LEFT_LINE_DETECTED = 1;
 // #define RIGHT_LINE_DETECTED = 2;
 
-float ball_dist_threshold = 17.7;
 
 float gap_ball_threshold = 5;
 // float avoid_dist_threshold;
@@ -24,8 +23,8 @@ const int BALL_FOUND = 1;
 const int BALL_NOT_FOUND = 0;
 const int OBS_DETECTED = 1;
 const int OBS_NOT_DETECTED = 0;
-const LIMIT_PRESSED = 0;
-const LIMIT_NOT_PRESSED = 1;
+const int LIMIT_PRESSED = 0;
+const int LIMIT_NOT_PRESSED = 1;
 const int LINE_NOT_DETECTED = 0;
 const int LEFT_LINE_DETECTED = 1;
 const int RIGHT_LINE_DETECTED = 2;
@@ -147,7 +146,7 @@ void init(){
     encoder.right_duration = 0;
     encoder.left_count = -1;
     odom.x = 80; // cm     // 40 or 80
-    odom.y = 15; // cm
+    odom.y = 0; // cm
     odom.w_left = 0;
     odom.w_right = 0;
     odom.orientation = 90*PI/180;
