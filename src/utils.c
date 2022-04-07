@@ -1,8 +1,14 @@
+#include "angular_velocity_encoder.c"
+
+float forward_duration;
+float vel_left;
+float ori;
+float left_distance;
+float changing_orientation;
 int check;
 int check_search_ball;
 int check_detect_line;
 float HOME_HEADING = 90;
-
 // TODO: Define/const
 // #define LINE_NOT_DETECTED = 0;
 // #define LEFT_LINE_DETECTED = 1;
@@ -21,6 +27,13 @@ const int OBS_NOT_DETECTED = 0;
 const int OBS_DETECTED = 1;
 int LIMIT_PRESSED = 0;
 int LIMIT_NOT_PRESSED = 1;
+
+typedef struct{
+    int left_duration;
+    int right_duration;
+    int left_count;
+} Encoder;
+Encoder encoder;
 
 typedef struct{
     float wheels_length;
@@ -57,7 +70,6 @@ IRSensor FrontSensor, BackSensor, LeftSensor, RightSensor;
 
 typedef struct{
     int forward_interval;
-    int rotate_interval;
 } GetTime;
 GetTime getTime;
 
@@ -122,9 +134,14 @@ void move(char dir, float left_speed, float right_speed){
 }
 
 void init(){
-    odom.x = 60; // cm
-    odom.y = 24; // cm
-    odom.orientation = 90;
+    encoder.left_duration = 0;
+    encoder.right_duration = 0;
+    encoder.left_count = -1;
+    odom.x = 80; // cm     // 40 or 80
+    odom.y = 15; // cm
+    odom.w_left = 0;
+    odom.w_right = 0;
+    odom.orientation = 90*PI/180;
     odom.resultant_vel = 0; // cm/s
     odom.compass_angle = compass();
     car.wheels_length = 25.5; // cm
@@ -140,6 +157,22 @@ float getIRSensorReading(IRSensor* sensor){
 	float volt = (float)SensorValue[sensor->pin]/4096*5;
 	float distance = sensor->factor * pow(volt , sensor->exponent);
 	return distance;
+}
+
+void forward_pose(){
+    forward_duration = (float)getTime.forward_interval/1000;
+    vel_left = odom.vel_left;
+    ori = odom.orientation;
+    odom.x += vel_left*cos(ori)*forward_duration;
+    odom.y += vel_left*sin(ori)*forward_duration;
+}
+
+void rotate_orientation(){
+    if (encoder.left_count != -1){
+        left_distance = encoder.left_count * PI;
+        changing_orientation = left_distance/(car.wheels_length/2);
+        odom.orientation += changing_orientation;
+    }
 }
 
 int detect_car(){ // front and back sensor only
@@ -273,6 +306,12 @@ void avoid_line(){
     }
 }
 
+void obstacle_avoidance(){
+    while (detect_car()==OBS_DETECTED){
+        move('f', 0, 0);
+    }
+}
+
 void find_ball_stop(){
     check_search_ball = search_ball();
     check_detect_line = detect_line();
@@ -290,8 +329,6 @@ void find_ball_stop(){
 void search_collect_home(){
     move('f', 1, 1);
     wait1Msec(3000);
-    move('r', 0.5, 0.5);
-    wait1Msec(2000);
     while(search_ball()==BALL_NOT_FOUND && detect_line()==LINE_NOT_DETECTED){
         move('l', 0.4, 0.4);
     }

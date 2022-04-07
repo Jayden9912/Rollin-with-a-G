@@ -27,19 +27,30 @@
 
 int POWER_ON = 0;
 int POWER_OFF = 1;
+int prev_time;
 
 task main(){
     init();
     startTask(left_wheel_encoder);
     startTask(right_wheel_encoder);
     startTask(kinematics);
-    startTask(forward_kinematics);
-    while(true){
-	    while(SensorValue[switch_limit]==POWER_ON){
-	        move('f',0.3,0.3);
+    // startTask(forward_kinematics);
+    clearTimer(T3);
+    prev_time = time1[T3];
+    while(true) {
+        while(SensorValue[switch_limit]==POWER_ON){
+            move('f',0.9,0.925);
+
+            // avoid_line();
             // find_ball_stop();
-	        //search_collect_home();
-	    }
-	    move('f',0,0);
-	}
+            //search_collect_home();
+        }
+        getTime.forward_interval = time1[T3] - prev_time;
+        forward_pose();
+        while(SensorValue[switch_limit]==POWER_OFF){
+            move('f',0,0);
+            clearTimer(T3);
+            prev_time = time1[T3];
+        }
+    }
 }
