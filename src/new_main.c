@@ -229,11 +229,11 @@ void moving(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSensor)
             return;
         }
 
-        // else if (detect_line() != LINE_NOT_DETECTED)
-        // {
-        //     // proceed to [Avoid Line]
-        //     avoid_line();
-        // }
+        else if (detect_line() != LINE_NOT_DETECTED)
+        {
+            // proceed to [Avoid Line]
+            avoid_line();
+        }
 
         else if (getIRSensorReading(FrontSensor) < obstacle_threshold)
         {
@@ -285,6 +285,7 @@ void return_ball(IRSensor *BackSensor)
             move('f', 0, 0);
         }
 
+        // ! Turn off to prevent jerking
         // else if(compass() != 135 && compass() != 90) {
         //     return_prep();
         // }
@@ -350,11 +351,11 @@ void collect_ball(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSe
             avoid_obs();
         }
 
-        // else if (detect_line() != LINE_NOT_DETECTED)
-        // {
-        //     // proceed to [Avoid Line]
-        //     avoid_line();
-        // }
+        else if (detect_line() != LINE_NOT_DETECTED)
+        {
+            // proceed to [Avoid Line]
+            avoid_line();
+        }
 
         else
         {
