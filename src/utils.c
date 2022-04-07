@@ -15,18 +15,27 @@ float HOME_HEADING = 90;
 // #define RIGHT_LINE_DETECTED = 2;
 
 float ball_dist_threshold = 17.7;
+
 float gap_ball_threshold = 5;
 // float avoid_dist_threshold;
-const int BALL_NOT_FOUND = 0;
+
+// * Condition parameters
 const int BALL_FOUND = 1;
+const int BALL_NOT_FOUND = 0;
+const int OBS_DETECTED = 1;
+const int OBS_NOT_DETECTED = 0;
+const LIMIT_PRESSED = 0;
+const LIMIT_NOT_PRESSED = 1;
 const int LINE_NOT_DETECTED = 0;
-// int LINE_DETECTED = 1;
 const int LEFT_LINE_DETECTED = 1;
 const int RIGHT_LINE_DETECTED = 2;
-const int OBS_NOT_DETECTED = 0;
-const int OBS_DETECTED = 1;
-int LIMIT_PRESSED = 0;
-int LIMIT_NOT_PRESSED = 1;
+
+const int ball_dist_threshold = 56;
+const int obstacle_threshold = 50;
+
+// * Current Action / State
+int found = 0;
+int collected = 0;
 
 typedef struct{
     int left_duration;
