@@ -133,7 +133,14 @@ void return_ball(IRSensor* BackSensor) {
         }
 
         else {
-            move('b', 0.5, 0.5);
+            if(SensorValue[home_limit_left] == LIMIT_PRESSED && SensorValue[home_limit_right] == LIMIT_PRESSED) {
+                move('f', 0, 0);
+                motor[ball_servo] = -60;
+                wait1Msec(150);
+                motor[ball_servo] = 20;
+                wait1Msec(600);
+                return;
+            }
         }
     }
 }
