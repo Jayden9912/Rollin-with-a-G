@@ -39,14 +39,15 @@ task main(){
     prev_time = time1[T3];
     while(true) {
         while(SensorValue[switch_limit]==POWER_ON){
-            move('f',0.9,0.925);
-
+            move('f',0.5,0.54);
+            // move('l',0.3,0.3);
             // avoid_line();
             // find_ball_stop();
             //search_collect_home();
         }
         getTime.forward_interval = time1[T3] - prev_time;
         forward_pose();
+        // rotate_orientation();
         while(SensorValue[switch_limit]==POWER_OFF){
             move('f',0,0);
             clearTimer(T3);

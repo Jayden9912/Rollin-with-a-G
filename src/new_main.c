@@ -59,6 +59,7 @@ int left_ir_value;
 int right_ir_value;
 int front_ir_value;
 int back_ir_value;
+int value;
 
 typedef struct
 {

@@ -9,12 +9,14 @@ int check;
 int check_search_ball;
 int check_detect_line;
 float HOME_HEADING = 90;
+float left_dist_mat[];
+float right_dist_mat[];
 // TODO: Define/const
 // #define LINE_NOT_DETECTED = 0;
 // #define LEFT_LINE_DETECTED = 1;
 // #define RIGHT_LINE_DETECTED = 2;
 
-float ball_dist_threshold = 17.7;
+// float ball_dist_threshold = 17.7;
 
 float gap_ball_threshold = 5;
 // float avoid_dist_threshold;
@@ -24,8 +26,8 @@ const int BALL_FOUND = 1;
 const int BALL_NOT_FOUND = 0;
 const int OBS_DETECTED = 1;
 const int OBS_NOT_DETECTED = 0;
-const LIMIT_PRESSED = 0;
-const LIMIT_NOT_PRESSED = 1;
+const int LIMIT_PRESSED = 0;
+const int LIMIT_NOT_PRESSED = 1;
 const int LINE_NOT_DETECTED = 0;
 const int LEFT_LINE_DETECTED = 1;
 const int RIGHT_LINE_DETECTED = 2;
@@ -48,6 +50,7 @@ typedef struct{
     float wheels_length;
     float turn_radius;
     float wheel_radius;
+    float wheel_half_rev_dist;
 } Car;
 Car car;
 
@@ -147,7 +150,7 @@ void init(){
     encoder.right_duration = 0;
     encoder.left_count = -1;
     odom.x = 80; // cm     // 40 or 80
-    odom.y = 15; // cm
+    odom.y = 13; // cm
     odom.w_left = 0;
     odom.w_right = 0;
     odom.orientation = 90*PI/180;
@@ -156,6 +159,7 @@ void init(){
     car.wheels_length = 25.5; // cm
     car.turn_radius = 0; // cm
     car.wheel_radius = 3.5;
+    car.wheel_half_rev_dist = (car.wheel_radius/100)*PI;
     initializeSensor(&FrontSensor, top_ir, 27.534, -1.207);
     initializeSensor(&BackSensor, back_ir, 27.534, -1.207);
     initializeSensor(&LeftSensor, left_ir, 27.534, -1.207);
@@ -168,6 +172,12 @@ float getIRSensorReading(IRSensor* sensor){
 	return distance;
 }
 
+int distance_profile(){
+    push(left_dist_mat, getIRSensorReading(LeftSensor));
+    push(right_dist_mat, getIRSensorReading(RightSensor));
+    wait1Msec(500);
+}
+
 void forward_pose(){
     forward_duration = (float)getTime.forward_interval/1000;
     vel_left = odom.vel_left;
@@ -178,8 +188,12 @@ void forward_pose(){
 
 void rotate_orientation(){
     if (encoder.left_count != -1){
-        left_distance = encoder.left_count * PI;
-        changing_orientation = left_distance/(car.wheels_length/2);
+        if (odom.orientation > (2*PI)){
+            odom.orientation -= 2*PI;
+        }
+        encoder.left_count += 1;
+        left_distance = encoder.left_count * car.wheel_half_rev_dist;
+        changing_orientation = left_distance/((car.wheels_length/2)/100);
         odom.orientation += changing_orientation;
     }
 }
