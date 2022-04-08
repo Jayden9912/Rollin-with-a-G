@@ -293,15 +293,19 @@ void return_ball(IRSensor *BackSensor)
         else if (SensorValue[avoid_limit_left] == LIMIT_PRESSED)
         {
             move('f', 0.2, 0.2);
-            wait1Msec(300);
-            move('l', 0.2, 0.2);
+            wait1Msec(400);
+            return_prep();
+            // move('l', 0.2, 0.2);
+            // wait1Msec(300);
         }
 
         else if (SensorValue[avoid_limit_right] == LIMIT_PRESSED)
         {
             move('f', 0.2, 0.2);
-            wait1Msec(300);
-            move('r', 0.2, 0.2);
+            wait1Msec(400);
+            return_prep();
+            // move('r', 0.2, 0.2);
+            // wait1Msec(300);
         }
 
         else if (SensorValue[home_limit_left] == LIMIT_PRESSED && SensorValue[home_limit_right] == LIMIT_PRESSED)
