@@ -45,21 +45,24 @@ const int LINE_NOT_DETECTED = 0;
 const int LEFT_LINE_DETECTED = 1;
 const int RIGHT_LINE_DETECTED = 2;
 
-const int ball_dist_threshold = 56;
-const int obstacle_threshold = 50;
+// const int ball_dist_threshold = 56;
+// const int obstacle_threshold = 40;
+const int ball_dist_threshold = 35;
+const int obstacle_threshold = 33;
 const int back_obs_threshold = 15;
-const int home_threshold = 28;
+const int home_threshold = 10;
 
 // * Current Action/ State
 int found = 0;
 int collected = 0;
+int value = 0;
+int state = 0;
 
 // * Sensors' Value
 int left_ir_value;
 int right_ir_value;
 int front_ir_value;
 int back_ir_value;
-int value;
 
 typedef struct
 {
@@ -154,7 +157,8 @@ int detect_line()
 
 void avoid_line()
 {
-    move('b', 0.3, 0.3);
+    move('b', 0.3, 0.34);
+    motor[ball_roller] = 0;
     wait1Msec(400);
     if (detect_line() == LEFT_LINE_DETECTED)
     {
@@ -167,6 +171,12 @@ void avoid_line()
         move('l', 0.3, 0.3);
         wait1Msec(600);
     }
+}
+
+void avoid_obs() {
+    motor[ball_roller] = 0;
+    move('f', 0, 0);
+    wait1Msec(1000);
 }
 
 int search_ball(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSensor)
@@ -223,19 +233,17 @@ void moving(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSensor)
         {
             // proceed to [Avoid Line]
             avoid_line();
-            // return;
         }
 
         else if (getIRSensorReading(FrontSensor) < obstacle_threshold)
         {
-            // proceed to [Avoid]
-            // stop for now
-            move('f', 0, 0);
+            // proceed to [Avoid Obstacle]
+            avoid_obs();
         }
 
         else
         {
-            move('f', 1, 1);
+            move('f', 0.7, 0.74);
         }
     }
 
@@ -247,7 +255,6 @@ void return_prep()
 {
     while (true)
     {
-        value = compass();
         if (compass() != 135 && compass() != 90)
         {
             move('r', 0.3, 0.3);
@@ -278,30 +285,44 @@ void return_ball(IRSensor *BackSensor)
             move('f', 0, 0);
         }
 
+        // ! Turn off to prevent jerking
+        // else if(compass() != 135 && compass() != 90) {
+        //     return_prep();
+        // }
+
         else if (SensorValue[avoid_limit_left] == LIMIT_PRESSED)
         {
-            move('l', 0.2, 0.2);
+            move('f', 0.2, 0.2);
+            wait1Msec(600); //400
+            return_prep();
+            // move('l', 0.2, 0.2);
+            // wait1Msec(300);
         }
 
         else if (SensorValue[avoid_limit_right] == LIMIT_PRESSED)
         {
-            move('r', 0.2, 0.2);
+            move('f', 0.2, 0.2);
+            wait1Msec(600); //400
+            return_prep();
+            // move('r', 0.2, 0.2);
+            // wait1Msec(300);
         }
 
         else if (SensorValue[home_limit_left] == LIMIT_PRESSED && SensorValue[home_limit_right] == LIMIT_PRESSED)
         {
             move('f', 0, 0);
             motor[ball_servo] = -60;
-            wait1Msec(150); // * tested on actual surface
+            wait1Msec(1500); // * tested on actual surface //150
             motor[ball_servo] = 60;
-            wait1Msec(600); // * tested on actual surface
+            wait1Msec(100); // * tested on actual surface //600
             found = BALL_NOT_FOUND;
             return;
         }
 
         else
         {
-            move('b', 0.4, 0.4);
+            move('b', 0.3, 0.33);
+            motor[ball_roller] = -127;
         }
     }
 }
@@ -331,21 +352,19 @@ void collect_ball(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSe
 
         else if (getIRSensorReading(FrontSensor) < obstacle_threshold)
         { // obstacle detected
-            move('f', 0, 0);
+            avoid_obs();
         }
 
         else if (detect_line() != LINE_NOT_DETECTED)
         {
             // proceed to [Avoid Line]
             avoid_line();
-            // found = BALL_NOT_FOUND;
-            // return;
         }
 
         else
         {
             motor[ball_roller] = 127;
-            move('f', 1, 1);
+            move('f', 0.7, 0.74);
             left_ir_value = getIRSensorReading(LeftSensor);
             right_ir_value = getIRSensorReading(RightSensor);
             front_ir_value = getIRSensorReading(FrontSensor);
@@ -357,9 +376,9 @@ void collect_ball(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSe
     motor[ball_roller] = 0;
 
     clearTimer(T4);
-    while (time1(T4) < 300)
+    while (time1(T4) < 150) //300
     { // ? need to test again after adding shock absorb
-        motor[ball_servo] = -30;
+        motor[ball_servo] = -60; //-30
     }
 
     motor[ball_servo] = 0;
@@ -367,23 +386,23 @@ void collect_ball(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSe
     return;
 }
 
-void start()
+void start(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSensor)
 {
-    // Move pass line
-    move('f', 0.5, 0.5);
-    wait1Msec(1200);
-    collected = BALL_NOT_COLLECTED;
-    // Proceed to [Spin Search]
+    collected = 0;
+    moving(LeftSensor, RightSensor, FrontSensor);
+    moving(LeftSensor, RightSensor, FrontSensor);
 }
 
 task main()
 {
     IRSensor LeftSensor, RightSensor, FrontSensor, BackSensor;
-    initializeSensor(&LeftSensor, left_ir, 27.534, -1.207);
-    initializeSensor(&RightSensor, right_ir, 24.25202, -0.9794);
+    // initializeSensor(&LeftSensor, left_ir, 27.534, -1.207);
+    // initializeSensor(&RightSensor, right_ir, 24.25202, -0.9794);
+    initializeSensor(&LeftSensor, left_ir, 28.76329, -1.2682);
+    initializeSensor(&RightSensor, right_ir, 24.02993, -0.9768);
     initializeSensor(&FrontSensor, top_ir, 25.24429, -0.9968);
     initializeSensor(&BackSensor, back_ir, 10.570, -0.974);
-    start();
+    start(&LeftSensor, &RightSensor, &FrontSensor);
     while (true)
     {
         if (!found && !collected)
@@ -408,7 +427,7 @@ task main()
 
         else
         {
-            start();
+            start(&LeftSensor, &RightSensor, &FrontSensor);
         }
     }
 }

@@ -16,7 +16,10 @@ float right_dist_mat[];
 // #define LEFT_LINE_DETECTED = 1;
 // #define RIGHT_LINE_DETECTED = 2;
 
+<<<<<<< HEAD
 // float ball_dist_threshold = 17.7;
+=======
+>>>>>>> a8a4398dd521806fd285ea7aa62ca9d404d761b3
 
 float gap_ball_threshold = 5;
 // float avoid_dist_threshold;
@@ -150,7 +153,11 @@ void init(){
     encoder.right_duration = 0;
     encoder.left_count = -1;
     odom.x = 80; // cm     // 40 or 80
+<<<<<<< HEAD
     odom.y = 13; // cm
+=======
+    odom.y = 0; // cm
+>>>>>>> a8a4398dd521806fd285ea7aa62ca9d404d761b3
     odom.w_left = 0;
     odom.w_right = 0;
     odom.orientation = 90*PI/180;
