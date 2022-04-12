@@ -3,6 +3,8 @@
 #pragma config(Sensor, in5, top_ir, sensorAnalog)
 #pragma config(Sensor, in6, home_limit_left, sensorAnalog)
 #pragma config(Sensor, in7, home_limit_right, sensorAnalog)
+#pragma config(Sensor, in8, avoid_limit_left, sensorAnalog)
+#pragma config(Sensor, dgtl1, avoid_limit_right, sensorDigitalIn)
 #pragma config(Sensor, dgtl5, ball_limit, sensorDigitalIn)
 #pragma config(Sensor, dgtl6, left_line, sensorDigitalIn)
 #pragma config(Sensor, dgtl7, right_line, sensorDigitalIn)
@@ -31,7 +33,7 @@ const int obstacle_threshold = 50;
 
 // ? Newly added
 const int home_threshold = 28;
-int value;
+int value[10];
 
 // * Current Action / State
 int found = 0;
@@ -174,7 +176,7 @@ void moving(IRSensor* LeftSensor, IRSensor* RightSensor, IRSensor* FrontSensor) 
         front_ir_value = getIRSensorReading(FrontSensor);
 
         if(search_ball(LeftSensor, RightSensor, FrontSensor) == BALL_FOUND) {
-            // proceed to [Collect Ball] 
+            // proceed to [Collect Ball]
             move('f', 0, 0);
             found = BALL_FOUND;
             return;
@@ -225,13 +227,14 @@ void return_prep() {
 void collect_ball(IRSensor* LeftSensor, IRSensor* RightSensor, IRSensor* FrontSensor) {
     clearTimer(T4);
     while(SensorValue[ball_limit]==LIMIT_NOT_PRESSED) {
+        clearTimer(T4);
         if(time1(T4) > 2300) {  // * tested on actual surface
             found = BALL_NOT_FOUND;
             motor[ball_roller] = 0;
             move('f', 0, 0);
             return;
         }
-    
+
         else if(getIRSensorReading(LeftSensor) < home_threshold && getIRSensorReading(RightSensor) < home_threshold && (compass() == 225 || compass() == 270 || compass() == 315)) {
             found = BALL_NOT_FOUND;
             motor[ball_roller] = 0;
@@ -247,20 +250,20 @@ void collect_ball(IRSensor* LeftSensor, IRSensor* RightSensor, IRSensor* FrontSe
             return;
         }
 
-        else if(getIRSensorReading(FrontSensor) < obstacle_threshold) {  // obstacle detected
-            move('f', 0, 0);
-        }
+        // else if(getIRSensorReading(FrontSensor) < obstacle_threshold) {  // obstacle detected
+        //     move('f', 0, 0);
+        // }
 
-        else if(detect_line() != LINE_NOT_DETECTED) {
-            // proceed to [Avoid Line]
-            avoid_line();
-            // found = BALL_NOT_FOUND;
-            // return;
-        }
+        // else if(detect_line() != LINE_NOT_DETECTED) {
+        //     // proceed to [Avoid Line]
+        //     avoid_line();
+        //     // found = BALL_NOT_FOUND;
+        //     // return;
+        // }
 
         else {
             motor[ball_roller] = 127;
-            move('f', 1, 1);
+            // move('f', 1, 1);
             left_ir_value = getIRSensorReading(LeftSensor);
             right_ir_value = getIRSensorReading(RightSensor);
             front_ir_value = getIRSensorReading(FrontSensor);
@@ -288,7 +291,29 @@ task main(){
     initializeSensor(&FrontSensor, top_ir, 25.24429, -0.9968);
 
     while(true) {
-        moving(&LeftSensor, &RightSensor, &FrontSensor);
+        // moving(&LeftSensor, &RightSensor, &FrontSensor);
+        left_ir_value = getIRSensorReading(LeftSensor);
+        right_ir_value = getIRSensorReading(RightSensor);
+        front_ir_value = getIRSensorReading(FrontSensor);
+        value[0] = SensorValue[home_limit_left];
+        value[1] = SensorValue[home_limit_right];
+        value[2] = SensorValue[ball_limit];
+        value[3] = SensorValue[avoid_limit_left];
+        value[4] = SensorValue[avoid_limit_right];
+        // front_raw_value = SensorValue[top_ir];
+        // front_volt = (float) front_raw_value * 5 / 4096;
+        // if(!collected) {
+        //     collect_ball(&LeftSensor, &RightSensor, &FrontSensor);
+        // }
+
+        // else {
+        //     motor[ball_servo] = -60;
+        //     wait1Msec(1500); // * tested on actual surface //150
+        //     motor[ball_servo] = 25;
+        //     wait1Msec(1000); // * tested on actual surface //600
+        //     motor[ball_servo] 
+        //     collected = BALL_NOT_COLLECTED;
+        // }
     }
 
     // while(true) {

@@ -35,8 +35,6 @@
 // * Condition parameters
 const int BALL_FOUND = 1;
 const int BALL_NOT_FOUND = 0;
-const int OBS_DETECTED = 1;
-const int OBS_NOT_DETECTED = 0;
 const int LIMIT_PRESSED = 0;
 const int LIMIT_NOT_PRESSED = 1;
 const int BALL_COLLECTED = 1;
@@ -45,24 +43,49 @@ const int LINE_NOT_DETECTED = 0;
 const int LEFT_LINE_DETECTED = 1;
 const int RIGHT_LINE_DETECTED = 2;
 
-// const int ball_dist_threshold = 56;
-// const int obstacle_threshold = 40;
+// * Thresholds
 const int ball_dist_threshold = 35;
+<<<<<<< HEAD
 const int obstacle_threshold = 33 ;
 const int back_obs_threshold = 15;
 const int home_threshold = 10;
  
+=======
+const int obstacle_threshold = 31;
+const int back_obs_threshold = 15;
+const int home_threshold = 10;
+
+// * Wheel Speed
+const float stop = 0;
+const float slow_turn = 0.2;
+const float fast_turn = 0.3;
+const float spin_search_speed = 0.2;
+
+const float left_wheel_forward_speed = 0.7;
+const float right_wheel_forward_speed = 0.74;
+const float left_wheel_backward_speed = 0.3;
+const float right_wheel_backward_speed = 0.34;
+
+const float avoid_obs_left_backward_speed = 0.4;
+const float avoid_obs_right_backward_speed = 0.44;
+
+const float return_ball_left_forward_speed = 0.2;
+const float return_ball_right_forward_speed = 0.24;
+
+// * Tennis holder
+const int reset_speed = 25;
+const int catch_speed = -60;
+
+>>>>>>> fb6602bc95bfd65140ccbda729246770eeec52a0
 // * Current Action/ State
 int found = 0;
 int collected = 0;
-int value = 0;
-int state = 0;
 
 // * Sensors' Value
-int left_ir_value;
-int right_ir_value;
-int front_ir_value;
-int back_ir_value;
+// int left_ir_value;
+// int right_ir_value;
+// int front_ir_value;
+// int back_ir_value;
 
 typedef struct
 {
@@ -157,26 +180,49 @@ int detect_line()
 
 void avoid_line()
 {
-    move('b', 0.3, 0.34);
+    move('b', left_wheel_backward_speed, right_wheel_backward_speed);
     motor[ball_roller] = 0;
     wait1Msec(400);
     if (detect_line() == LEFT_LINE_DETECTED)
     {
-        move('r', 0.3, 0.3);
+        move('r', fast_turn, fast_turn);
         wait1Msec(600);
     }
 
     else
     {
-        move('l', 0.3, 0.3);
+        move('l', fast_turn, fast_turn);
         wait1Msec(600);
     }
 }
 
-void avoid_obs() {
+void avoid_obs(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSensor)
+{
     motor[ball_roller] = 0;
-    move('f', 0, 0);
-    wait1Msec(1000);
+    move('f', stop, stop);
+    wait1Msec(300);
+
+    move('r', slow_turn, slow_turn);
+    wait1Msec(600);
+    move('f', stop, stop);
+    // left_ir_value = getIRSensorReading(LeftSensor);
+    // right_ir_value = getIRSensorReading(RightSensor);
+    // front_ir_value = getIRSensorReading(FrontSensor);
+    if (getIRSensorReading(LeftSensor) > obstacle_threshold && getIRSensorReading(RightSensor) > obstacle_threshold && getIRSensorReading(FrontSensor) > obstacle_threshold)
+    {
+        return;
+    }
+
+    move('l', slow_turn, slow_turn);
+    wait1Msec(1200);
+    move('f', stop, stop);
+    if (getIRSensorReading(LeftSensor) > obstacle_threshold && getIRSensorReading(RightSensor) > obstacle_threshold && getIRSensorReading(FrontSensor) > obstacle_threshold)
+    {
+        return;
+    }
+
+    move('b', avoid_obs_left_backward_speed, avoid_obs_right_backward_speed);
+    wait1Msec(400);
 }
 
 int search_ball(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSensor)
@@ -193,21 +239,21 @@ void spin_search(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSen
     clearTimer(T4);
     while (search_ball(LeftSensor, RightSensor, FrontSensor) == BALL_NOT_FOUND)
     {
-        if (time1(T4) > 4500)
+        if (time1(T4) > 4200)
         { // * tested on actual surface
             // proceed to [Moving]
-            move('f', 0, 0);
+            move('f', stop, stop);
             return;
         }
 
-        move('l', 0.2, 0.2); // On the spot turn
-        left_ir_value = getIRSensorReading(LeftSensor);
-        right_ir_value = getIRSensorReading(RightSensor);
-        front_ir_value = getIRSensorReading(FrontSensor);
+        move('l', spin_search_speed, spin_search_speed); // On the spot turn
+        // left_ir_value = getIRSensorReading(LeftSensor);
+        // right_ir_value = getIRSensorReading(RightSensor);
+        // front_ir_value = getIRSensorReading(FrontSensor);
     }
 
     // proceed to [Collect Ball]
-    move('f', 0, 0);
+    move('f', stop, stop);
     found = BALL_FOUND;
     return;
 }
@@ -215,16 +261,17 @@ void spin_search(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSen
 void moving(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSensor)
 {
     clearTimer(T4);
+    motor[ball_servo] = reset_speed;
     while (time1(T4) < 1200)
     { // * tested on actual surface
-        left_ir_value = getIRSensorReading(LeftSensor);
-        right_ir_value = getIRSensorReading(RightSensor);
-        front_ir_value = getIRSensorReading(FrontSensor);
+        // left_ir_value = getIRSensorReading(LeftSensor);
+        // right_ir_value = getIRSensorReading(RightSensor);
+        // front_ir_value = getIRSensorReading(FrontSensor);
 
         if (search_ball(LeftSensor, RightSensor, FrontSensor) == BALL_FOUND)
         {
             // proceed to [Collect Ball]
-            move('f', 0, 0);
+            move('f', stop, stop);
             found = BALL_FOUND;
             return;
         }
@@ -238,16 +285,17 @@ void moving(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSensor)
         else if (getIRSensorReading(FrontSensor) < obstacle_threshold)
         {
             // proceed to [Avoid Obstacle]
-            avoid_obs();
+            avoid_obs(LeftSensor, RightSensor, FrontSensor);
+            clearTimer(T4);
         }
 
         else
         {
-            move('f', 0.7, 0.74);
+            move('f', left_wheel_forward_speed, right_wheel_forward_speed);
         }
     }
 
-    move('f', 0, 0);
+    move('f', stop, stop);
     return;
 }
 
@@ -257,19 +305,19 @@ void return_prep()
     {
         if (compass() != 135 && compass() != 90)
         {
-            move('r', 0.3, 0.3);
+            move('r', fast_turn, fast_turn);
         }
 
         else if (compass() == 135)
         {
-            move('r', 0.2, 0.2);
+            move('r', slow_turn, slow_turn);
         }
 
         else
         {
-            move('l', 0.2, 0.2);
+            move('l', slow_turn, slow_turn);
             wait1Msec(120); // * tested on actual surface
-            move('f', 0, 0);
+            move('f', stop, stop);
             return;
         }
     }
@@ -279,10 +327,10 @@ void return_ball(IRSensor *BackSensor)
 {
     while (true)
     {
-        back_ir_value = getIRSensorReading(BackSensor);
-        if (back_ir_value < back_obs_threshold)
+        // back_ir_value = getIRSensorReading(BackSensor);
+        if (getIRSensorReading(BackSensor) < back_obs_threshold)
         {
-            move('f', 0, 0);
+            move('f', stop, stop);
         }
 
         // ! Turn off to prevent jerking
@@ -292,8 +340,8 @@ void return_ball(IRSensor *BackSensor)
 
         else if (SensorValue[avoid_limit_left] == LIMIT_PRESSED)
         {
-            move('f', 0.2, 0.2);
-            wait1Msec(600); //400
+            move('f', return_ball_left_forward_speed, return_ball_right_forward_speed);
+            wait1Msec(600); // 400
             return_prep();
             // move('l', 0.2, 0.2);
             // wait1Msec(300);
@@ -301,8 +349,8 @@ void return_ball(IRSensor *BackSensor)
 
         else if (SensorValue[avoid_limit_right] == LIMIT_PRESSED)
         {
-            move('f', 0.2, 0.2);
-            wait1Msec(600); //400
+            move('f', return_ball_left_forward_speed, return_ball_right_forward_speed);
+            wait1Msec(600); // 400
             return_prep();
             // move('r', 0.2, 0.2);
             // wait1Msec(300);
@@ -310,18 +358,23 @@ void return_ball(IRSensor *BackSensor)
 
         else if (SensorValue[home_limit_left] == LIMIT_PRESSED && SensorValue[home_limit_right] == LIMIT_PRESSED)
         {
-            move('f', 0, 0);
-            motor[ball_servo] = -60;
+            move('f', stop, stop);
+            motor[ball_servo] = catch_speed;
             wait1Msec(1500); // * tested on actual surface //150
+<<<<<<< HEAD
             motor[ball_servo] = 60;
             wait1Msec(150); // * tested on actual surface //600
+=======
+            motor[ball_servo] = reset_speed;
+            wait1Msec(2000); // * tested on actual surface //600
+>>>>>>> fb6602bc95bfd65140ccbda729246770eeec52a0
             found = BALL_NOT_FOUND;
             return;
         }
 
         else
         {
-            move('b', 0.3, 0.33);
+            move('b', left_wheel_backward_speed, right_wheel_backward_speed);
             motor[ball_roller] = -127;
         }
     }
@@ -336,7 +389,7 @@ void collect_ball(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSe
         { // * tested on actual surface
             found = BALL_NOT_FOUND;
             motor[ball_roller] = 0;
-            move('f', 0, 0);
+            move('f', stop, stop);
             return;
         }
 
@@ -352,7 +405,8 @@ void collect_ball(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSe
 
         else if (getIRSensorReading(FrontSensor) < obstacle_threshold)
         { // obstacle detected
-            avoid_obs();
+            avoid_obs(LeftSensor, RightSensor, FrontSensor);
+            clearTimer(T4);
         }
 
         else if (detect_line() != LINE_NOT_DETECTED)
@@ -364,21 +418,26 @@ void collect_ball(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSe
         else
         {
             motor[ball_roller] = 127;
-            move('f', 0.7, 0.74);
-            left_ir_value = getIRSensorReading(LeftSensor);
-            right_ir_value = getIRSensorReading(RightSensor);
-            front_ir_value = getIRSensorReading(FrontSensor);
-            value = compass();
+            move('f', left_wheel_forward_speed, right_wheel_forward_speed);
+            // left_ir_value = getIRSensorReading(LeftSensor);
+            // right_ir_value = getIRSensorReading(RightSensor);
+            // front_ir_value = getIRSensorReading(FrontSensor);
         }
     }
 
-    move('f', 0, 0);
+    move('f', stop, stop);
     motor[ball_roller] = 0;
 
     clearTimer(T4);
+<<<<<<< HEAD
     while (time1(T4) < 100) //300
     { // ? need to test again after adding shock absorb
         motor[ball_servo] = -70; //-30
+=======
+    while (time1(T4) < 150)              // 300
+    {                                    // ? need to test again after adding shock absorb
+        motor[ball_servo] = catch_speed; //-30
+>>>>>>> fb6602bc95bfd65140ccbda729246770eeec52a0
     }
 
     motor[ball_servo] = 0;
@@ -388,10 +447,15 @@ void collect_ball(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSe
 
 void start(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSensor)
 {
-    collected = 0;
+    collected = BALL_NOT_COLLECTED;
+    move('f', left_wheel_forward_speed, right_wheel_forward_speed);
+    wait1Msec(1200);
     moving(LeftSensor, RightSensor, FrontSensor);
+<<<<<<< HEAD
     moving(LeftSensor, RightSensor, FrontSensor);
-    moving(LeftSensor, RightSensor, FrontSensor);
+=======
+    // moving(LeftSensor, RightSensor, FrontSensor);
+>>>>>>> fb6602bc95bfd65140ccbda729246770eeec52a0
 }
 
 task main()

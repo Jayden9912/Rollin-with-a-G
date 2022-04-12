@@ -32,6 +32,10 @@ float left_array[] = {0.0, 0.0, 0.0, 0.0, 0.0};
 float right_array[] = {0.0, 0.0, 0.0, 0.0, 0.0};
 float front_array[] = {0.0, 0.0, 0.0, 0.0, 0.0};
 
+float left_diff[] = {0.0, 0.0, 0.0, 0.0};
+float right_diff[] = {0.0, 0.0, 0.0, 0.0};
+float front_diff[] = {0.0, 0.0, 0.0, 0.0};
+
 typedef struct
 {
     int pin;
@@ -173,15 +177,6 @@ task search()
         float right_diff = right_array[j+1] - right_array[j];
         float front_diff = front_array[j+1] - front_array[j];
 
-        if(left_diff > diff_threshold)
-        {
-            left_rise_edge = 1;
-        }
-
-        else if(left_diff < -1*diff_threshold)
-        {
-            left_drop_edge = 1;
-        }
     }
 }
 
