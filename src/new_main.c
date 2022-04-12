@@ -48,10 +48,10 @@ const int RIGHT_LINE_DETECTED = 2;
 // const int ball_dist_threshold = 56;
 // const int obstacle_threshold = 40;
 const int ball_dist_threshold = 35;
-const int obstacle_threshold = 33;
+const int obstacle_threshold = 33 ;
 const int back_obs_threshold = 15;
 const int home_threshold = 10;
-
+ 
 // * Current Action/ State
 int found = 0;
 int collected = 0;
@@ -314,7 +314,7 @@ void return_ball(IRSensor *BackSensor)
             motor[ball_servo] = -60;
             wait1Msec(1500); // * tested on actual surface //150
             motor[ball_servo] = 60;
-            wait1Msec(100); // * tested on actual surface //600
+            wait1Msec(150); // * tested on actual surface //600
             found = BALL_NOT_FOUND;
             return;
         }
@@ -376,9 +376,9 @@ void collect_ball(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSe
     motor[ball_roller] = 0;
 
     clearTimer(T4);
-    while (time1(T4) < 150) //300
+    while (time1(T4) < 100) //300
     { // ? need to test again after adding shock absorb
-        motor[ball_servo] = -60; //-30
+        motor[ball_servo] = -70; //-30
     }
 
     motor[ball_servo] = 0;
@@ -389,6 +389,7 @@ void collect_ball(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSe
 void start(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSensor)
 {
     collected = 0;
+    moving(LeftSensor, RightSensor, FrontSensor);
     moving(LeftSensor, RightSensor, FrontSensor);
     moving(LeftSensor, RightSensor, FrontSensor);
 }
