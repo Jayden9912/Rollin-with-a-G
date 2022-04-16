@@ -5,6 +5,8 @@
 #pragma config(Sensor, in7, home_limit_right, sensorAnalog)
 #pragma config(Sensor, in8, avoid_limit_left, sensorAnalog)
 #pragma config(Sensor, dgtl1, avoid_limit_right, sensorDigitalIn)
+#pragma config(Sensor, dgtl3, left_wheel_line, sensorDigitalIn)
+#pragma config(Sensor, dgtl4, right_wheel_line, sensorDigitalIn)
 #pragma config(Sensor, dgtl5, ball_limit, sensorDigitalIn)
 #pragma config(Sensor, dgtl6, left_line, sensorDigitalIn)
 #pragma config(Sensor, dgtl7, right_line, sensorDigitalIn)
@@ -35,7 +37,30 @@ const int obstacle_threshold = 50;
 const int home_threshold = 28;
 int value[10];
 
-// * Current Action / State
+// * Wheel Speed
+const float stop = 0;
+const float slow_turn = 0.2;
+const float fast_turn = 0.3;
+const float spin_search_speed = 0.2;
+
+const float left_wheel_forward_speed = 0.7;
+const float right_wheel_forward_speed = 0.84;
+
+const float return_ball_left_forward_speed = 0.2;
+const float return_ball_right_forward_speed = 0.34;
+
+const float left_wheel_backward_speed = 0.4;
+const float right_wheel_backward_speed = 0.43;
+
+const float avoid_obs_left_backward_speed = 0.4;
+const float avoid_obs_right_backward_speed = 0.43;
+
+// * Tennis holder
+const int reset_speed = 27;
+const int catch_speed = -60;
+const int reset_time = 1500;
+
+// * Current Action/ State
 int found = 0;
 int collected = 0;
 
@@ -223,64 +248,51 @@ void return_prep() {
     }
 }
 
-// TODO: 1.) Test boundary and obstacle sensing condition
-void collect_ball(IRSensor* LeftSensor, IRSensor* RightSensor, IRSensor* FrontSensor) {
+void collect_ball(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSensor)
+{
     clearTimer(T4);
-    while(SensorValue[ball_limit]==LIMIT_NOT_PRESSED) {
-        clearTimer(T4);
-        if(time1(T4) > 2300) {  // * tested on actual surface
+    while (SensorValue[ball_limit] == LIMIT_NOT_PRESSED)
+    {
+        if (time1(T4) > 2300)
+        { // * tested on actual surface
             found = BALL_NOT_FOUND;
             motor[ball_roller] = 0;
-            move('f', 0, 0);
+            move('f', stop, stop);
             return;
         }
 
-        else if(getIRSensorReading(LeftSensor) < home_threshold && getIRSensorReading(RightSensor) < home_threshold && (compass() == 225 || compass() == 270 || compass() == 315)) {
+        else if (getIRSensorReading(LeftSensor) < home_threshold && getIRSensorReading(RightSensor) < home_threshold && (compass() == 225 || compass() == 270 || compass() == 315))
+        {
             found = BALL_NOT_FOUND;
             motor[ball_roller] = 0;
             return_prep();
             moving(LeftSensor, RightSensor, FrontSensor);
             moving(LeftSensor, RightSensor, FrontSensor);
-            // motor[ball_roller] = 0;
-            // move('l', 0.5, 0.5);
-            // wait1Msec(1000);
-            // move('f', 0.5, 0.5);
-            // wait1Msec(500);
-            // move('f', 0, 0);
             return;
         }
 
-        // else if(getIRSensorReading(FrontSensor) < obstacle_threshold) {  // obstacle detected
-        //     move('f', 0, 0);
-        // }
-
-        // else if(detect_line() != LINE_NOT_DETECTED) {
-        //     // proceed to [Avoid Line]
-        //     avoid_line();
-        //     // found = BALL_NOT_FOUND;
-        //     // return;
-        // }
-
-        else {
+        else
+        {
             motor[ball_roller] = 127;
-            // move('f', 1, 1);
-            left_ir_value = getIRSensorReading(LeftSensor);
-            right_ir_value = getIRSensorReading(RightSensor);
-            front_ir_value = getIRSensorReading(FrontSensor);
-            value = compass();
+            // move('f', left_wheel_forward_speed, right_wheel_forward_speed);
+            // left_ir_value = getIRSensorReading(LeftSensor);
+            // right_ir_value = getIRSensorReading(RightSensor);
+            // front_ir_value = getIRSensorReading(FrontSensor);
         }
     }
 
-    move('f', 0, 0);
+    move('f', stop, stop);
     motor[ball_roller] = 0;
 
     clearTimer(T4);
-    while(time1(T4) < 300) {    // ? need to test again after adding shock absorb
-        motor[ball_servo] = -30;
+    while (time1(T4) < 80)              // 300
+    {                                    // ? need to test again after adding shock absorb
+        motor[ball_servo] = catch_speed; //-30
     }
 
     motor[ball_servo] = 0;
     collected = BALL_COLLECTED;
+    wait1Msec(1000);
     return;
 }
 
@@ -300,20 +312,21 @@ task main(){
         value[2] = SensorValue[ball_limit];
         value[3] = SensorValue[avoid_limit_left];
         value[4] = SensorValue[avoid_limit_right];
+
         // front_raw_value = SensorValue[top_ir];
         // front_volt = (float) front_raw_value * 5 / 4096;
-        // if(!collected) {
-        //     collect_ball(&LeftSensor, &RightSensor, &FrontSensor);
-        // }
+        if(!collected) {
+            collect_ball(&LeftSensor, &RightSensor, &FrontSensor);
+        }
 
-        // else {
-        //     motor[ball_servo] = -60;
-        //     wait1Msec(1500); // * tested on actual surface //150
-        //     motor[ball_servo] = 25;
-        //     wait1Msec(1000); // * tested on actual surface //600
-        //     motor[ball_servo] 
-        //     collected = BALL_NOT_COLLECTED;
-        // }
+        else {
+            // motor[ball_servo] = -60;
+            // wait1Msec(500); // * tested on actual surface //150
+            motor[ball_servo] = 0;
+            // motor[ball_servo] = reset_speed;
+            // wait1Msec(reset_time); // * tested on actual surface //600
+            // collected = BALL_NOT_COLLECTED;
+        }
     }
 
     // while(true) {
