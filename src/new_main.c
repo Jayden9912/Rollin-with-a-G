@@ -45,15 +45,9 @@ const int RIGHT_LINE_DETECTED = 2;
 
 // * Thresholds
 const int ball_dist_threshold = 35;
-<<<<<<< HEAD
-const int obstacle_threshold = 33 ;
-const int back_obs_threshold = 15;
-const int home_threshold = 10;
- 
-=======
 const int obstacle_threshold = 31;
 const int back_obs_threshold = 15;
-const int home_threshold = 10;
+const int home_threshold = 12;
 
 // * Wheel Speed
 const float stop = 0;
@@ -61,22 +55,23 @@ const float slow_turn = 0.2;
 const float fast_turn = 0.3;
 const float spin_search_speed = 0.2;
 
-const float left_wheel_forward_speed = 0.7;
-const float right_wheel_forward_speed = 0.74;
-const float left_wheel_backward_speed = 0.3;
-const float right_wheel_backward_speed = 0.34;
+const float left_wheel_forward_speed = 0.8;
+const float right_wheel_forward_speed = 0.94;
+
+const float return_ball_left_forward_speed = 0.3;
+const float return_ball_right_forward_speed = 0.44;
+
+const float left_wheel_backward_speed = 0.4;
+const float right_wheel_backward_speed = 0.43;
 
 const float avoid_obs_left_backward_speed = 0.4;
-const float avoid_obs_right_backward_speed = 0.44;
-
-const float return_ball_left_forward_speed = 0.2;
-const float return_ball_right_forward_speed = 0.24;
+const float avoid_obs_right_backward_speed = 0.43;
 
 // * Tennis holder
-const int reset_speed = 25;
+const int reset_speed = 27;
 const int catch_speed = -60;
+const int reset_time = 1500;
 
->>>>>>> fb6602bc95bfd65140ccbda729246770eeec52a0
 // * Current Action/ State
 int found = 0;
 int collected = 0;
@@ -239,7 +234,7 @@ void spin_search(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSen
     clearTimer(T4);
     while (search_ball(LeftSensor, RightSensor, FrontSensor) == BALL_NOT_FOUND)
     {
-        if (time1(T4) > 4200)
+        if (time1(T4) > 4500)
         { // * tested on actual surface
             // proceed to [Moving]
             move('f', stop, stop);
@@ -261,7 +256,8 @@ void spin_search(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSen
 void moving(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSensor)
 {
     clearTimer(T4);
-    motor[ball_servo] = reset_speed;
+    // motor[ball_servo] = reset_speed;
+    motor[ball_roller] = -76;
     while (time1(T4) < 1200)
     { // * tested on actual surface
         // left_ir_value = getIRSensorReading(LeftSensor);
@@ -360,6 +356,7 @@ void return_ball(IRSensor *BackSensor)
         {
             move('f', stop, stop);
             motor[ball_servo] = catch_speed;
+<<<<<<< HEAD
             wait1Msec(1500); // * tested on actual surface //150
 <<<<<<< HEAD
             motor[ball_servo] = 60;
@@ -368,6 +365,12 @@ void return_ball(IRSensor *BackSensor)
             motor[ball_servo] = reset_speed;
             wait1Msec(2000); // * tested on actual surface //600
 >>>>>>> fb6602bc95bfd65140ccbda729246770eeec52a0
+=======
+            wait1Msec(500); // * tested on actual surface //150
+            motor[ball_servo] = reset_speed;
+            wait1Msec(reset_time); // * tested on actual surface //600
+            motor[ball_servo] = 0;
+>>>>>>> bed0c68674c0a39eea3b8a6d974c182e381b2902
             found = BALL_NOT_FOUND;
             return;
         }
@@ -430,11 +433,15 @@ void collect_ball(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSe
 
     clearTimer(T4);
 <<<<<<< HEAD
+<<<<<<< HEAD
     while (time1(T4) < 100) //300
     { // ? need to test again after adding shock absorb
         motor[ball_servo] = -70; //-30
 =======
     while (time1(T4) < 150)              // 300
+=======
+    while (time1(T4) < 80)              // 300
+>>>>>>> bed0c68674c0a39eea3b8a6d974c182e381b2902
     {                                    // ? need to test again after adding shock absorb
         motor[ball_servo] = catch_speed; //-30
 >>>>>>> fb6602bc95bfd65140ccbda729246770eeec52a0
@@ -452,10 +459,14 @@ void start(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSensor)
     wait1Msec(1200);
     moving(LeftSensor, RightSensor, FrontSensor);
 <<<<<<< HEAD
+<<<<<<< HEAD
     moving(LeftSensor, RightSensor, FrontSensor);
 =======
     // moving(LeftSensor, RightSensor, FrontSensor);
 >>>>>>> fb6602bc95bfd65140ccbda729246770eeec52a0
+=======
+    moving(LeftSensor, RightSensor, FrontSensor);
+>>>>>>> bed0c68674c0a39eea3b8a6d974c182e381b2902
 }
 
 task main()

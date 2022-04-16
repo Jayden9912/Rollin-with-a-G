@@ -22,7 +22,7 @@ task left_wheel_encoder(){  // remember left_count+1 cause first time -1 != left
             encoder.left_count += 1;
         }
         prev_left_duration = en_left_duration;
-        encoder.left_duration = prev_left_duration;
+        encoder.left_duration = prev_leftcd _duration;
         // see_left = left_duration;
         // left_value = 1;
     }

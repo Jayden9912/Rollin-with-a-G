@@ -39,13 +39,8 @@ task main(){
     prev_time = time1[T3];
     while(true) {
         while(SensorValue[switch_limit]==POWER_ON){
-<<<<<<< HEAD
-            move('f',0.5,0.54);
-            // move('l',0.3,0.3);
-=======
             move('f',0.67,0.84);
 
->>>>>>> a8a4398dd521806fd285ea7aa62ca9d404d761b3
             // avoid_line();
             // find_ball_stop();
             //search_collect_home();
