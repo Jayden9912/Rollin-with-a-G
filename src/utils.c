@@ -1,57 +1,64 @@
-#include "angular_velocity_encoder.c"
+// * Condition parameters
+const int BALL_FOUND = 1;
+const int BALL_NOT_FOUND = 0;
+const int LIMIT_PRESSED = 0;
+const int LIMIT_NOT_PRESSED = 1;
+const int BALL_COLLECTED = 1;
+const int BALL_NOT_COLLECTED = 0;
+const int LINE_NOT_DETECTED = 0;
+const int LEFT_LINE_DETECTED = 1;
+const int RIGHT_LINE_DETECTED = 2;
 
+// * Thresholds
+const int ball_dist_threshold = 35;
+const int obstacle_threshold = 31;
+const int back_obs_threshold = 15;
+const int home_threshold = 12;
+
+// * Wheel Speed
+const float stop = 0;
+const float slow_turn = 0.2;
+const float fast_turn = 0.3;
+const float spin_search_speed = 0.2;
+
+const float left_wheel_forward_speed = 0.8;
+const float right_wheel_forward_speed = 0.94;
+
+const float return_ball_left_forward_speed = 0.3;
+const float return_ball_right_forward_speed = 0.44;
+
+const float left_wheel_backward_speed = 0.4;
+const float right_wheel_backward_speed = 0.43;
+
+const float avoid_obs_left_backward_speed = 0.4;
+const float avoid_obs_right_backward_speed = 0.43;
+
+// * Tennis holder
+const int reset_speed = 27;
+const int catch_speed = -60;
+const int reset_time = 1500;
+
+// * Current Action/ State
+int found = 0;
+int collected = 0;
+
+// * Parameters to update the odometry in forward_pose() and rotate_pose()
 float forward_duration;
 float vel_left;
 float ori;
 float left_distance;
 float changing_orientation;
-int check;
-int check_search_ball;
-int check_detect_line;
-float HOME_HEADING = 90;
-float left_dist_mat[];
-float right_dist_mat[];
-// TODO: Define/const
-// #define LINE_NOT_DETECTED = 0;
-// #define LEFT_LINE_DETECTED = 1;
-// #define RIGHT_LINE_DETECTED = 2;
-
-<<<<<<< HEAD
-// float ball_dist_threshold = 17.7;
-=======
->>>>>>> a8a4398dd521806fd285ea7aa62ca9d404d761b3
-
-float gap_ball_threshold = 5;
-// float avoid_dist_threshold;
-
-// * Condition parameters
-const int BALL_FOUND = 1;
-const int BALL_NOT_FOUND = 0;
-const int OBS_DETECTED = 1;
-const int OBS_NOT_DETECTED = 0;
-const int LIMIT_PRESSED = 0;
-const int LIMIT_NOT_PRESSED = 1;
-const int LINE_NOT_DETECTED = 0;
-const int LEFT_LINE_DETECTED = 1;
-const int RIGHT_LINE_DETECTED = 2;
-
-const int ball_dist_threshold = 56;
-const int obstacle_threshold = 50;
-
-// * Current Action / State
-int found = 0;
-int collected = 0;
 
 typedef struct{
     int left_duration;
     int right_duration;
+    int forward_interval;
     int left_count;
 } Encoder;
 Encoder encoder;
 
 typedef struct{
     float wheels_length;
-    float turn_radius;
     float wheel_radius;
     float wheel_half_rev_dist;
 } Car;
@@ -83,11 +90,6 @@ typedef struct{
 } IRSensor;
 IRSensor FrontSensor, BackSensor, LeftSensor, RightSensor;
 
-typedef struct{
-    int forward_interval;
-} GetTime;
-GetTime getTime;
-
 void initializeSensor(IRSensor* sensor, int pin, float factor, float exponent){
 	sensor->pin = pin;
 	sensor->factor = factor;
@@ -96,7 +98,7 @@ void initializeSensor(IRSensor* sensor, int pin, float factor, float exponent){
 
 float compass(){
 	int val;
-	val = SensorValue[compass_MSB]*pow(2,3) + SensorValue[compass_Bit2]*pow(2,2) + SensorValue[compass_Bit3]*2 + SensorValue[compass_LSB];
+	val = SensorValue[compass_MSB]*pow(2, 3) + SensorValue[compass_Bit2]*pow(2, 2) + SensorValue[compass_Bit3]*2 + SensorValue[compass_LSB];
 	switch(val){
 		case 13: 
 		    return 180; // E
@@ -122,55 +124,22 @@ float compass(){
 void move(char dir, float left_speed, float right_speed){
     switch(dir){
         case 'f':
-            // clearTimer(T3); // insert after function call
             motor[left_motor] = left_speed*127;
             motor[right_motor] = right_speed*127;
-            // getTime.forward_interval = time1[T3];
             break;
         case 'b':
-            // clearTimer(T3);
             motor[left_motor] = -left_speed*127;
             motor[right_motor] = -right_speed*127;
-            // getTime.forward_interval = time1[T3];
             break;
         case 'r':
-            // clearTimer(T3);
             motor[left_motor] = left_speed*127;
             motor[right_motor] = -right_speed*127;
-            // getTime.rotate_interval = time1[T3];
             break;
         case 'l':
-            // clearTimer(T3);
             motor[left_motor] = -left_speed*127;
             motor[right_motor] = right_speed*127;
-            // getTime.rotate_interval = time1[T3];
             break;
     }
-}
-
-void init(){
-    encoder.left_duration = 0;
-    encoder.right_duration = 0;
-    encoder.left_count = -1;
-    odom.x = 80; // cm     // 40 or 80
-<<<<<<< HEAD
-    odom.y = 13; // cm
-=======
-    odom.y = 0; // cm
->>>>>>> a8a4398dd521806fd285ea7aa62ca9d404d761b3
-    odom.w_left = 0;
-    odom.w_right = 0;
-    odom.orientation = 90*PI/180;
-    odom.resultant_vel = 0; // cm/s
-    odom.compass_angle = compass();
-    car.wheels_length = 25.5; // cm
-    car.turn_radius = 0; // cm
-    car.wheel_radius = 3.5;
-    car.wheel_half_rev_dist = (car.wheel_radius/100)*PI;
-    initializeSensor(&FrontSensor, top_ir, 27.534, -1.207);
-    initializeSensor(&BackSensor, back_ir, 27.534, -1.207);
-    initializeSensor(&LeftSensor, left_ir, 27.534, -1.207);
-    initializeSensor(&RightSensor, right_ir, 27.534, -1.207);
 }
 
 float getIRSensorReading(IRSensor* sensor){
@@ -179,21 +148,18 @@ float getIRSensorReading(IRSensor* sensor){
 	return distance;
 }
 
-int distance_profile(){
-    push(left_dist_mat, getIRSensorReading(LeftSensor));
-    push(right_dist_mat, getIRSensorReading(RightSensor));
-    wait1Msec(500);
-}
-
 void forward_pose(){
-    forward_duration = (float)getTime.forward_interval/1000;
+    // move straight
+    // vel_right = vel_left
+    forward_duration = (float)encoder.forward_interval/1000;
     vel_left = odom.vel_left;
     ori = odom.orientation;
     odom.x += vel_left*cos(ori)*forward_duration;
     odom.y += vel_left*sin(ori)*forward_duration;
 }
 
-void rotate_orientation(){
+void rotate_pose(){
+    // rotate in place
     if (encoder.left_count != -1){
         if (odom.orientation > (2*PI)){
             odom.orientation -= 2*PI;
@@ -205,168 +171,271 @@ void rotate_orientation(){
     }
 }
 
-int detect_car(){ // front and back sensor only
-    float front_distance = getIRSensorReading(FrontSensor);
-    float back_distance = getIRSensorReading(BackSensor);
-    if (front_distance<10 && back_distance<10){
-        return OBS_DETECTED;
-    }
-    return OBS_NOT_DETECTED;
-}
-
-int detect_line(){
-    // Changes added by Soon Hing
-    if (SensorValue[right_line]!=0) {
+int detect_line()
+{
+    if (SensorValue[right_line] == 0)
+    {
         return RIGHT_LINE_DETECTED;
     }
-
-    else if (SensorValue[left_line]!=0) {
+    else if (SensorValue[left_line] == 0)
+    {
         return LEFT_LINE_DETECTED;
     }
-
-    else {
+    else
+    {
         return LINE_NOT_DETECTED;
     }
-    // if (SensorValue[right_line]==0 || SensorValue[left_line]==0){
-    //     return LINE_DETECTED; 
-    // }
-    // return LINE_NOT_DETECTED;
 }
 
-int search_ball(){
-    if (getIRSensorReading(LeftSensor)<=ball_dist_threshold && getIRSensorReading(RightSensor)<=ball_dist_threshold){
+int search_ball(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSensor)
+{
+    if (getIRSensorReading(LeftSensor) <= ball_dist_threshold && getIRSensorReading(RightSensor) <= ball_dist_threshold && getIRSensorReading(FrontSensor) > obstacle_threshold)
+    {
         return BALL_FOUND;
     }
     return BALL_NOT_FOUND;
 }
 
-void release_ball(){
-    motor[ball_servo] = 127;
+void spin_search(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSensor)
+{
+    clearTimer(T4);
+    while (search_ball(LeftSensor, RightSensor, FrontSensor) == BALL_NOT_FOUND)
+    {
+        if (time1(T4) > 4500)
+        { // * tested on actual surface
+            // proceed to [Moving]
+            move('f', stop, stop);
+            return;
+        }
+        move('l', spin_search_speed, spin_search_speed); // On the spot turn
+    }
+    // proceed to [Collect Ball]
+    move('f', stop, stop);
+    found = BALL_FOUND;
+    return;
 }
 
-void reverse_to_home(){
-    while(SensorValue[home_limit_left]==LIMIT_NOT_PRESSED && SensorValue[home_limit_right]==LIMIT_NOT_PRESSED){
-        move('b', 0.75, 0.75);
+void avoid_line()
+{
+    move('b', left_wheel_backward_speed, right_wheel_backward_speed);
+    motor[ball_roller] = 0;
+    wait1Msec(400);
+    if (detect_line() == LEFT_LINE_DETECTED)
+    {
+        move('r', fast_turn, fast_turn);
+        wait1Msec(600);
     }
-    move('b', 0, 0);
-    release_ball();
-}
-
-void home(){ // calibrate HOME and compass direction
-    float current_heading = compass();
-    // facing direction
-    // front
-    if (current_heading == HOME_HEADING){ // S
-        reverse_to_home();
-    }
-    else if (current_heading==45 && current_heading==0 && current_heading==315 && current_heading==270){ // SW, W, NW, N
-        while(compass() != HOME_HEADING){
-            move('l', 0.5, 0.5);
-            reverse_to_home();
-        }
-    }
-    else if (current_heading==135 && current_heading==180 && current_heading==225){ // SE, E, NE
-        while(compass() != HOME_HEADING){
-            move('r', 0.5, 0.5);
-            reverse_to_home();
-        }
-    }
-}
-
-void avoid_line(){
-    float current_heading = compass();
-    // left boundary
-    if (0<=odom.x<=40 && odom.y<=200){
-        if (current_heading==90 && current_heading==135 && current_heading==180){ // S, SE, E
-            while(compass()!=45){ // SW
-                move('r', 0.5, 0.5);
-            }
-            move('r', 0, 0);
-        }
-        else if(current_heading==225){ // NE
-            while(compass()!=45){ // SW
-                move('l', 0.5, 0.5);
-            }
-            move('l', 0, 0);
-        }
-    }
-    // right boundary
-    else if(80<=odom.x<=120 && odom.y<=200){
-        if (current_heading==90 && current_heading==45 && current_heading==0){ // S, SW, W
-            while(compass()!=135){ // SE
-                move('l', 0.5, 0.5);
-            }
-            move('l', 0, 0);
-        }
-        else if(current_heading==315){ // NW
-            while(compass()!=135){ // SE
-                move('r', 0.5, 0.5);
-            }
-            move('r', 0, 0);
-        }
-    }
-    // left upper corner
-    else if(0<=odom.x<=40 && odom.y>200){
-        move('b', 0.5, 0.5);
-        while(compass()!=315){ // NW
-            move('r', 0.5, 0.5);
-        }
-    }
-    // right upper corner
-    else if(80<=odom.x<=120 && odom.y>200){
-        move('b', 0.5, 0.5);
-        while(compass()!=225){ //NE
-            move('r', 0.5, 0.5);
-        }
-    }
-    // upper boundary
-    else if(40<=odom.x<=80 && odom.y>200){
-        if (current_heading==90 && current_heading==135 && current_heading==180){ // S, SE, E
-            while(compass()!=270){ // N
-                move('l', 0.5, 0.5);
-            }
-            move('l', 0, 0);
-        }
-        else if(current_heading==0 && current_heading==45){ // W, SW
-            while(compass()!=270){ // N
-                move('r', 0.5, 0.5);
-            }
-            move('r', 0, 0);
-        }
+    else
+    {
+        move('l', fast_turn, fast_turn);
+        wait1Msec(600);
     }
 }
 
-void obstacle_avoidance(){
-    while (detect_car()==OBS_DETECTED){
-        move('f', 0, 0);
+void avoid_obs(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSensor)
+{
+    motor[ball_roller] = 0;
+    move('f', stop, stop);
+    wait1Msec(300);
+
+    move('r', slow_turn, slow_turn);
+    wait1Msec(600);
+    move('f', stop, stop);
+
+    if (getIRSensorReading(LeftSensor) > obstacle_threshold && getIRSensorReading(RightSensor) > obstacle_threshold && getIRSensorReading(FrontSensor) > obstacle_threshold)
+    {
+        return;
     }
+    move('l', slow_turn, slow_turn);
+    wait1Msec(1200);
+    move('f', stop, stop);
+    if (getIRSensorReading(LeftSensor) > obstacle_threshold && getIRSensorReading(RightSensor) > obstacle_threshold && getIRSensorReading(FrontSensor) > obstacle_threshold)
+    {
+        return;
+    }
+    move('b', avoid_obs_left_backward_speed, avoid_obs_right_backward_speed);
+    wait1Msec(400);
 }
 
-void find_ball_stop(){
-    check_search_ball = search_ball();
-    check_detect_line = detect_line();
-    while(search_ball()==BALL_NOT_FOUND && detect_line()==LINE_NOT_DETECTED){
-        check = 100;
-        move('l', 0.5, 0.5);
-        // wait1Msec(3000);
-        // move('r', 0.5, 0.5);
-        // wait1Msec(3000);
-    }
-    check = 0;
-    move('f', 0, 0);
-}
-
-void search_collect_home(){
-    move('f', 1, 1);
-    wait1Msec(3000);
-    while(search_ball()==BALL_NOT_FOUND && detect_line()==LINE_NOT_DETECTED){
-        move('l', 0.4, 0.4);
-    }
-    move('f', 0, 0);
-    while(SensorValue[right_ir]>gap_ball_threshold && SensorValue[left_ir]>gap_ball_threshold 
-            && SensorValue[ball_limit]==LIMIT_NOT_PRESSED){
-        move('f', 1, 1);
-        motor[ball_roller] = 127;
+void moving(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSensor)
+{
+    clearTimer(T4);
+    motor[ball_roller] = -76;
+    while (time1(T4) < 1200)
+    { // * tested on actual surface
+        if (search_ball(LeftSensor, RightSensor, FrontSensor) == BALL_FOUND)
+        {
+            // proceed to [Collect Ball]
+            move('f', stop, stop);
+            found = BALL_FOUND;
+            return;
         }
-    home();
+        else if (detect_line() != LINE_NOT_DETECTED)
+        {
+            // proceed to [Avoid Line]
+            avoid_line();
+        }
+        else if (getIRSensorReading(FrontSensor) < obstacle_threshold)
+        {
+            // proceed to [Avoid Obstacle]
+            avoid_obs(LeftSensor, RightSensor, FrontSensor);
+            clearTimer(T4);
+        }
+        else
+        {
+            move('f', left_wheel_forward_speed, right_wheel_forward_speed);
+        }
+    }
+    move('f', stop, stop);
+    return;
+}
+
+void return_prep()
+{
+    while (true)
+    {
+        if (odom.compass_angle != 135 && odom.compass_angle != 90)
+        {
+            move('r', fast_turn, fast_turn);
+        }
+        else if (odom.compass_angle == 135)
+        {
+            move('r', slow_turn, slow_turn);
+        }
+        else
+        {
+            move('l', slow_turn, slow_turn);
+            wait1Msec(120); // * tested on actual surface
+            move('f', stop, stop);
+            return;
+        }
+    }
+}
+
+void return_ball(IRSensor *BackSensor)
+{
+    while (true)
+    {
+        if (getIRSensorReading(BackSensor) < back_obs_threshold)
+        {
+            move('f', stop, stop);
+        }
+        else if (SensorValue[avoid_limit_left] == LIMIT_PRESSED)
+        {
+            move('f', return_ball_left_forward_speed, return_ball_right_forward_speed);
+            wait1Msec(600);
+            return_prep();
+        }
+        else if (SensorValue[avoid_limit_right] == LIMIT_PRESSED)
+        {
+            move('f', return_ball_left_forward_speed, return_ball_right_forward_speed);
+            wait1Msec(600);
+            return_prep();
+        }
+        else if (SensorValue[home_limit_left] == LIMIT_PRESSED && SensorValue[home_limit_right] == LIMIT_PRESSED)
+        {
+            move('f', stop, stop);
+            motor[ball_servo] = catch_speed;
+            wait1Msec(500); // * tested on actual surface
+            motor[ball_servo] = reset_speed;
+            wait1Msec(reset_time); // * tested on actual surface
+            motor[ball_servo] = 0;
+            found = BALL_NOT_FOUND;
+            return;
+        }
+        else
+        {
+            move('b', left_wheel_backward_speed, right_wheel_backward_speed);
+            motor[ball_roller] = -127;
+        }
+    }
+}
+
+void collect_ball(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSensor)
+{
+    clearTimer(T4);
+    while (SensorValue[ball_limit] == LIMIT_NOT_PRESSED)
+    {
+        if (time1(T4) > 2300)
+        { // * tested on actual surface
+            found = BALL_NOT_FOUND;
+            motor[ball_roller] = 0;
+            move('f', stop, stop);
+            return;
+        }
+
+        else if (getIRSensorReading(LeftSensor) < home_threshold && getIRSensorReading(RightSensor) < home_threshold && (odom.compass_angle == 225 || odom.compass_angle == 270 || odom.compass_angle == 315))
+        {
+            found = BALL_NOT_FOUND;
+            motor[ball_roller] = 0;
+            return_prep();
+            moving(LeftSensor, RightSensor, FrontSensor);
+            moving(LeftSensor, RightSensor, FrontSensor);
+            return;
+        }
+
+        else if (getIRSensorReading(FrontSensor) < obstacle_threshold)
+        { // obstacle detected
+            avoid_obs(LeftSensor, RightSensor, FrontSensor);
+            clearTimer(T4);
+        }
+
+        else if (detect_line() != LINE_NOT_DETECTED)
+        {
+            // proceed to [Avoid Line]
+            avoid_line();
+        }
+
+        else
+        {
+            motor[ball_roller] = 127;
+            move('f', left_wheel_forward_speed, right_wheel_forward_speed);
+        }
+    }
+
+    move('f', stop, stop);
+    motor[ball_roller] = 0;
+
+    clearTimer(T4);
+    while (time1(T4) < 80) 
+    { 
+        motor[ball_servo] = catch_speed; 
+    }
+
+    motor[ball_servo] = 0;
+    collected = BALL_COLLECTED;
+    return;
+}
+
+void start(IRSensor *LeftSensor, IRSensor *RightSensor, IRSensor *FrontSensor)
+{
+    collected = BALL_NOT_COLLECTED;
+    move('f', left_wheel_forward_speed, right_wheel_forward_speed);
+    wait1Msec(1200);
+    moving(LeftSensor, RightSensor, FrontSensor);
+    moving(LeftSensor, RightSensor, FrontSensor);
+}
+
+void init(){
+    /*
+    Uncomment this section to enable encoder and odometry updater
+    */
+    // encoder.left_duration = 0;                           // ms
+    // encoder.right_duration = 0;                          // ms
+    // encoder.left_count = -1;
+    // car.wheels_length = 25.5;                            // cm
+    // car.wheel_radius = 3.5;                              // cm
+    // car.wheel_half_rev_dist = (car.wheel_radius/100)*PI; // m/rad
+    // odom.x = 80;                                         // cm 
+    // odom.y = 13;                                         // cm
+    // odom.w_left = 0;                                     // rad/s
+    // odom.w_right = 0;                                    // rad/s
+    // odom.orientation = 90*PI/180;                        // rad
+    // odom.resultant_vel = 0;                              // cm/s
+    odom.compass_angle = compass();
+    initializeSensor(&LeftSensor, left_ir, 28.76329, -1.2682);
+    initializeSensor(&RightSensor, right_ir, 24.02993, -0.9768);
+    initializeSensor(&FrontSensor, top_ir, 25.24429, -0.9968);
+    initializeSensor(&BackSensor, back_ir, 10.570, -0.974);
+    start(&LeftSensor, &RightSensor, &FrontSensor);
 }

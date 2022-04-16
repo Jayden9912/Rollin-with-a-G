@@ -34,20 +34,14 @@ task main(){
     startTask(left_wheel_encoder);
     startTask(right_wheel_encoder);
     startTask(kinematics);
-    // startTask(forward_kinematics);
     clearTimer(T3);
     prev_time = time1[T3];
     while(true) {
         while(SensorValue[switch_limit]==POWER_ON){
             move('f',0.67,0.84);
-
-            // avoid_line();
-            // find_ball_stop();
-            //search_collect_home();
         }
-        getTime.forward_interval = time1[T3] - prev_time;
+        encoder.forward_interval = time1[T3] - prev_time;
         forward_pose();
-        // rotate_orientation();
         while(SensorValue[switch_limit]==POWER_OFF){
             move('f',0,0);
             clearTimer(T3);
